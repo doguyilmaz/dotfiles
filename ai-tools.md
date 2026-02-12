@@ -120,7 +120,7 @@ bunx skills add <repo>                   # single skill: bunx skills add <repo> 
 
 Tags: `mobile` `web` `backend` `all` `devtool`
 
-#### Active (17 enabled)
+#### Active (22 enabled)
 
 ##### `anthropics/claude-plugins-official`
 
@@ -133,8 +133,12 @@ Tags: `mobile` `web` `backend` `all` `devtool`
 | hookify | Analyzes conversations to find mistakes and creates hooks to prevent them | `all` |
 | security-guidance | Reviews code for security vulnerabilities and provides secure coding guidance | `all` |
 | typescript-lsp | TypeScript language server — real-time diagnostics and type checking | `all` |
+| kotlin-lsp | Kotlin language server — real-time diagnostics and type checking | `mobile` |
+| swift-lsp | Swift language server — real-time diagnostics and type checking | `mobile` |
 | code-simplifier | Simplifies and refines recently modified code for clarity and maintainability | `all` |
 | github | GitHub CLI integration — PRs, issues, code review, branching strategies | `all` |
+| sentry | Error monitoring — issue search, root cause analysis, trace inspection, AI-powered fixes | `all` |
+| slack | Slack integration — send messages, search channels, manage notifications | `all` |
 | supabase | Manages Supabase projects — migrations, SQL, edge functions, branches, types | `backend` |
 | firebase | Manages Firebase — auth, Firestore, RTDB, crashlytics, storage, hosting, remote config | `backend` |
 | context7 | Fetches up-to-date library docs and code examples for any framework | `all` |
@@ -154,12 +158,14 @@ Tags: `mobile` `web` `backend` `all` `devtool`
 | react-native-best-practices | RN performance — FPS, TTI, bundle size, memory, re-renders, animations, Hermes | plugin + skill | `mobile` |
 | github | GitHub patterns via gh CLI — PRs, stacked PRs, code review, branching, automation | plugin + skill | `all` |
 
-#### Disabled (6 installed — enable per project)
+#### Disabled (8 installed — enable per project)
 
 | Plugin | What it does | Tags | When to enable |
 |--------|-------------|------|----------------|
 | frontend-design | Production-grade web frontend interfaces with high design quality | `web` | Web/frontend projects |
 | vercel | Deploy to Vercel, set up CLI, view deployment logs | `web` | Vercel-hosted projects |
+| Notion | Notion workspace integration — search, create pages/tasks, query databases | `all` | Projects using Notion for docs/tasks |
+| atlassian | Jira + Confluence — triage issues, create backlogs from specs, status reports, search knowledge | `all` | Teams using Jira/Confluence |
 | learning-output-style | Interactive mode — asks you to write key code sections yourself | `all` | When you want learning/pairing mode |
 | plugin-dev | End-to-end plugin creation — scaffolding, agents, skills, hooks, MCP, validation | `devtool` | When building Claude plugins |
 | pr-review-toolkit | Multi-agent PR review — silent failures, type design, test coverage, comments | `all` | Larger team projects, strict PR review |
@@ -167,9 +173,9 @@ Tags: `mobile` `web` `backend` `all` `devtool`
 
 #### Available (not installed)
 
-**Official:** clangd-lsp, claude-code-setup, claude-md-management, csharp-lsp, gopls-lsp, jdtls-lsp, kotlin-lsp, lua-lsp, php-lsp, rust-analyzer-lsp, swift-lsp
+**Official:** clangd-lsp, claude-code-setup, claude-md-management, csharp-lsp, gopls-lsp, jdtls-lsp, lua-lsp, php-lsp, rust-analyzer-lsp
 
-**External:** asana, gitlab, greptile, laravel-boost, linear, playwright, serena, slack, stripe
+**External:** asana, gitlab, greptile, laravel-boost, linear, playwright, serena, stripe
 
 #### Callstack (skill only — not installable as plugins)
 
