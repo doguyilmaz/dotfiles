@@ -1,8 +1,12 @@
 {
-  "name": "dotfiles-cli",
+  "name": "@doguyilmaz/dotfiles",
   "version": "0.1.0",
-  "private": true,
+  "description": "Collect machine configs for dotfiles sync",
   "bin": {
-    "dotfiles-collect": "./setup/collect-machine-config.sh"
-  }
+    "dotfiles": "./bin/dotfiles.js"
+  },
+  "files": [
+    "bin/dotfiles.js",
+    "setup/collect-machine-config.sh"
+  ]
 }
