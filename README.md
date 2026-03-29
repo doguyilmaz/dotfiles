@@ -29,6 +29,7 @@ dotfiles/
 │   ├── windsurf/
 │   │   └── mcp_config.json   # MCP server configs
 │   └── shared/
+│       ├── ai-tools.md        # Full skills/plugins/MCP inventory (superskill blueprint)
 │       └── mcp-servers.md     # Canonical MCP server list & setup notes
 ├── shell/
 │   ├── .zshrc                 # Main zsh config (shared)
@@ -117,8 +118,9 @@ Make configs portable across machines and usernames.
 
 A curated, composable skill that encodes the preferred dev workflow. Shared across all AI tools via `skills.sh`.
 
-**Research & Design:**
+**Research & Design** (using `ai/shared/ai-tools.md` as blueprint)**:**
 - [ ] Audit all currently installed skills across Claude, Cursor, Windsurf, Gemini
+- [ ] Compare with work Mac report — merge skill inventories
 - [ ] Categorize: which skills for web, mobile, animations, email, infra, etc.
 - [ ] Define boundaries: when each skill applies, in what context, why
 - [ ] Use `find-skills` to discover additional community skills worth including
