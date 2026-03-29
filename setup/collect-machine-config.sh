@@ -117,6 +117,63 @@ REPORT="$OUTPUT_DIR/$FILENAME"
   echo '```'
   echo ""
 
+  echo "## SSH Config"
+  echo '```'
+  if [ -f ~/.ssh/config ]; then
+    # Redact IP addresses and key paths for safety
+    sed 's/HostName .*/HostName [REDACTED]/; s/IdentityFile .*/IdentityFile [REDACTED]/' ~/.ssh/config
+  else
+    echo "(not found)"
+  fi
+  echo '```'
+  echo ""
+
+  echo "## GitHub CLI"
+  echo '```yaml'
+  cat ~/.config/gh/config.yml 2>/dev/null || echo "(not found)"
+  echo '```'
+  echo ""
+
+  echo "## npm config (.npmrc)"
+  echo '```'
+  if [ -f ~/.npmrc ]; then
+    # Redact auth tokens
+    sed 's/_authToken=.*/_authToken=[REDACTED]/' ~/.npmrc
+  else
+    echo "(not found)"
+  fi
+  echo '```'
+  echo ""
+
+  echo "## Bun config (bunfig.toml)"
+  echo '```toml'
+  cat ~/.bunfig.toml 2>/dev/null || echo "(not found)"
+  echo '```'
+  echo ""
+
+  echo "## Raycast"
+  echo '```'
+  [ -d "/Applications/Raycast.app" ] && echo "(installed)" || echo "(not installed)"
+  echo '```'
+  echo ""
+
+  echo "## AltTab"
+  echo '```'
+  if [ -d "/Applications/AltTab.app" ]; then
+    echo "(installed)"
+    defaults read com.lwouis.alt-tab-macos 2>/dev/null | head -30 || echo "(no preferences found)"
+  else
+    echo "(not installed)"
+  fi
+  echo '```'
+  echo ""
+
+  echo "## macOS Apps (/Applications)"
+  echo '```'
+  ls /Applications/ 2>/dev/null | sort || echo "(unable to list)"
+  echo '```'
+  echo ""
+
   echo "## Homebrew"
   echo '```'
   brew list --formula 2>/dev/null | sort || echo "(brew not found)"

@@ -7,6 +7,8 @@
 *.pem
 credentials.json
 google_accounts.json
+.npmrc
+ssh/config
 
 # AI tool caches & runtime data
 ai/**/cache/
