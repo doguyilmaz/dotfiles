@@ -1,6 +1,6 @@
 # @doguyilmaz/dotfiles
 
-Collect machine configs (AI tools, shell, git, editors) for dotfiles sync.
+Personal dotfiles CLI — collect, sync, and manage configs across machines.
 
 ## Usage
 
