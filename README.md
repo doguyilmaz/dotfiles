@@ -69,9 +69,25 @@ dotfiles/
 
 > **Note:** `ai/cursor/` holds MCP/rules configs (from `~/.cursor/`), while `editor/cursor/` holds editor settings (from `~/Library/Application Support/Cursor/`). Same tool, different config scopes.
 
+## Collect Machine Config
+
+Generate a report of all AI tools, skills, MCPs, shell, git, and editor configs on any machine. No clone needed.
+
+```bash
+bunx github:doguyilmaz/dotfiles
+```
+
+Or if the repo is already cloned:
+
+```bash
+bash ~/dotfiles/setup/collect-machine-config.sh
+```
+
+Report is saved to `reports/` (in repo) or `~/` (standalone).
+
 ## Quick Start
 
-> TODO: Will be implemented in Phase 3
+> TODO: Will be implemented in Phase 4
 
 ```bash
 git clone https://github.com/doguyilmaz/dotfiles.git ~/dotfiles

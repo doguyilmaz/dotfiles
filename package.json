@@ -1,0 +1,8 @@
+{
+  "name": "dotfiles-cli",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "dotfiles-collect": "./setup/collect-machine-config.sh"
+  }
+}
