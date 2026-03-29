@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp ~/.claude/CLAUDE.md ai/claude/CLAUDE.md)",
+      "Bash(cp ~/.claude/settings.json ai/claude/settings.json)"
+    ]
+  }
+}

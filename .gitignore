@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+
+# Secrets & credentials
+*.env
+*.key
+*.pem
+credentials.json
+google_accounts.json
+
+# AI tool caches & runtime data
+ai/**/cache/
+ai/**/sessions/
+ai/**/history.*
+
+# Comparison reports (temporary)
+reports/
