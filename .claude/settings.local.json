@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(cp ~/.claude/CLAUDE.md ai/claude/CLAUDE.md)",
-      "Bash(cp ~/.claude/settings.json ai/claude/settings.json)"
+      "Bash(cp ~/.claude/settings.json ai/claude/settings.json)",
+      "Bash(rm -f ~/dotfiles-report-doguyilmaz.md)",
+      "Bash(bash setup/collect-machine-config.sh)"
     ]
   }
 }
