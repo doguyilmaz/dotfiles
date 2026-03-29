@@ -157,12 +157,13 @@ One command to set up a new machine. Critical for work Mac migrations.
 - [ ] Create `setup/install.sh` for macOS
   - [ ] Detect OS and architecture
   - [ ] Backup existing configs before overwriting
-  - [ ] Create all symlinks automatically (configs + skills)
+  - [ ] Copy configs to their destinations (backup originals first)
   - [ ] Install Homebrew + Brewfile (formulae, casks, Mac App Store apps)
   - [ ] Install oh-my-zsh + plugins (zsh-autosuggestions, zsh-syntax-highlighting)
   - [ ] Install dev tools (bun, fnm, etc.)
 - [ ] Create `apps/Brewfile` with all Homebrew dependencies
-- [ ] Add uninstall/restore script (reverse symlinks, restore backups)
+- [ ] Symlink shared skills across AI tools (Claude/Cursor/Windsurf/Gemini point to one copy)
+- [ ] Add uninstall/restore script (restore backups)
 
 ### Phase 5 — Work vs Personal Separation
 
@@ -194,31 +195,34 @@ Full machine provisioning: install apps, set system preferences.
 
 ## Config Sync Strategy
 
-Currently using **git + manual symlinks**. Simple, transparent, no extra tools needed.
+**Copy-based** — the repo is the source of truth. The installer copies configs to their destinations (with backup). No symlinks for primary configs.
 
-A symlink is just a pointer — `~/.zshrc` points to `~/dotfiles/shell/.zshrc`. Edits happen in one place, git tracks everything. Safe to create and delete (deleting a symlink does NOT delete the original file).
+**Symlinks only for shared references** — when multiple tools need the same file (e.g. skills shared across Claude/Cursor/Windsurf/Gemini), the primary copy lives in one location and other tools symlink to it. One source on disk, no drift.
 
-### Symlink Reference
+### Install Reference
 
 ```bash
-# --- AI Tools ---
-ln -sf ~/dotfiles/ai/claude/CLAUDE.md ~/.claude/CLAUDE.md
-ln -sf ~/dotfiles/ai/claude/settings.json ~/.claude/settings.json
-ln -sf ~/dotfiles/ai/cursor/mcp.json ~/.cursor/mcp.json
-ln -sf ~/dotfiles/ai/gemini/GEMINI.md ~/.gemini/GEMINI.md
-ln -sf ~/dotfiles/ai/gemini/settings.json ~/.gemini/settings.json
-ln -sf ~/dotfiles/ai/windsurf/mcp_config.json ~/.codeium/windsurf/mcp_config.json
+# --- AI Tools (copy to home) ---
+cp ~/dotfiles/ai/claude/CLAUDE.md ~/.claude/CLAUDE.md
+cp ~/dotfiles/ai/claude/settings.json ~/.claude/settings.json
+cp ~/dotfiles/ai/cursor/mcp.json ~/.cursor/mcp.json
+cp ~/dotfiles/ai/gemini/GEMINI.md ~/.gemini/GEMINI.md
+cp ~/dotfiles/ai/gemini/settings.json ~/.gemini/settings.json
+cp ~/dotfiles/ai/windsurf/mcp_config.json ~/.codeium/windsurf/mcp_config.json
 
 # --- Shell ---
-ln -sf ~/dotfiles/shell/.zshrc ~/.zshrc
+cp ~/dotfiles/shell/.zshrc ~/.zshrc
 
 # --- Git ---
-ln -sf ~/dotfiles/git/.gitconfig ~/.gitconfig
-ln -sf ~/dotfiles/git/.gitignore_global ~/.gitignore_global
+cp ~/dotfiles/git/.gitconfig ~/.gitconfig
+cp ~/dotfiles/git/.gitignore_global ~/.gitignore_global
 
 # --- Editors ---
-ln -sf ~/dotfiles/editor/zed/settings.json ~/.config/zed/settings.json
+cp ~/dotfiles/editor/zed/settings.json ~/.config/zed/settings.json
 
 # --- Terminal ---
-ln -sf ~/dotfiles/terminal/.p10k.zsh ~/.p10k.zsh
+cp ~/dotfiles/terminal/.p10k.zsh ~/.p10k.zsh
+
+# --- Skills (symlink — shared across tools) ---
+# e.g. ~/.cursor/skills/superskill -> ~/.claude/skills/superskill
 ```
