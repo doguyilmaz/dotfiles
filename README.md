@@ -74,7 +74,7 @@ dotfiles/
 Generate a report of all AI tools, skills, MCPs, shell, git, and editor configs on any machine. No clone needed.
 
 ```bash
-bunx github:doguyilmaz/dotfiles
+bunx @doguyilmaz/dotfiles
 ```
 
 Or if the repo is already cloned:
