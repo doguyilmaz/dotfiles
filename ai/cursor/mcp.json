@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "bunx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "Framelink Figma MCP": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "figma-developer-mcp",
+        "--figma-api-key=FIGMA_KEY_REDACTED",
+        "--stdio"
+      ]
+    }
+  }
+}
