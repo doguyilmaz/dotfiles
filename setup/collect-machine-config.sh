@@ -2,14 +2,37 @@
 # Collects AI tool configs and system info from any machine.
 # Run on work Mac, then copy the output file back to compare.
 #
-# Usage: bash collect-machine-config.sh
-# Output: ~/dotfiles-report-<hostname>.md
+# Usage:
+#   bash collect-machine-config.sh           # outputs to ./reports/ if in repo, else ~/
+#   bash collect-machine-config.sh -o /path  # custom output directory
 
-REPORT="$HOME/dotfiles-report-$(hostname -s).md"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+HOSTNAME="$(hostname -s)"
+FILENAME="dotfiles-report-${HOSTNAME}.md"
+
+OUTPUT_DIR=""
+while getopts "o:" opt; do
+  case $opt in
+    o) OUTPUT_DIR="$OPTARG" ;;
+    *) ;;
+  esac
+done
+
+if [ -n "$OUTPUT_DIR" ]; then
+  mkdir -p "$OUTPUT_DIR"
+elif [ -d "$REPO_ROOT/reports" ] || [ -d "$REPO_ROOT/.git" ]; then
+  OUTPUT_DIR="$REPO_ROOT/reports"
+  mkdir -p "$OUTPUT_DIR"
+else
+  OUTPUT_DIR="$HOME"
+fi
+
+REPORT="$OUTPUT_DIR/$FILENAME"
 
 {
   echo "# Machine Config Report"
-  echo "- **Host:** $(hostname -s)"
+  echo "- **Host:** $HOSTNAME"
   echo "- **OS:** $(uname -s) $(uname -m)"
   echo "- **Date:** $(date +%Y-%m-%d)"
   echo ""
@@ -106,4 +129,3 @@ REPORT="$HOME/dotfiles-report-$(hostname -s).md"
 } > "$REPORT"
 
 echo "Report saved to: $REPORT"
-echo "Copy it back with: scp $(hostname -s):$REPORT ~/Developer/Personal/dotfiles/reports/"
