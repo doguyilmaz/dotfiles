@@ -1,150 +1,123 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-# fi
+# Enable Powerlevel10k instant prompt.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
-#
-# Path to your oh-my-zsh installation.
+# Path to oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
-#source ~/.bash_profile
 
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-# ZSH_THEME="robbyrussell"
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
-
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment one of the following lines to change the auto-update behavior
-# zstyle ':omz:update' mode disabled  # disable automatic updates
-# zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
-
-# Uncomment the following line to change how often to auto-update (in days).
-# zstyle ':omz:update' frequency 13
-
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# You can also set it to another string to have that shown instead of the default red dots.
-# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-completions you-should-use)
 
 source $ZSH/oh-my-zsh.sh
 
-# User configuration
+# ============================================================================
+# LOCALE & ENVIRONMENT
+# ============================================================================
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export EDITOR='nano'
 
-# export MANPATH="/usr/local/man:$MANPATH"
+# ============================================================================
+# HISTORY — bigger, shared across terminals, no duplicates
+# ============================================================================
+HISTSIZE=50000
+SAVEHIST=50000
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_IGNORE_SPACE
 
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
+# ============================================================================
+# PATH CONFIGURATION
+# ============================================================================
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
+# Homebrew
+if [[ -d "/opt/homebrew/bin" ]]; then
+    export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+fi
 
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
+# User bin
+if [[ -d "$HOME/bin" ]]; then
+    export PATH="$HOME/bin:$PATH"
+fi
+export PATH="$HOME/.local/bin:$PATH"
 
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
+# Node.js via fnm
+if [[ -d "$HOME/Library/Application Support/fnm" ]]; then
+    export PATH="$HOME/Library/Application Support/fnm:$PATH"
+    eval "$(fnm env --use-on-cd)"
+fi
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# Bun
+if [[ -d "$HOME/.bun" ]]; then
+    export BUN_INSTALL="$HOME/.bun"
+    export PATH="$BUN_INSTALL/bin:$PATH"
+    [[ -s "$HOME/.bun/_bun" ]] && source "$HOME/.bun/_bun"
+fi
 
-# ANDROID
-export ANDROID_HOME=$HOME/Library/Android/sdk
-export PATH=$PATH:$ANDROID_HOME/emulator
-export PATH=$PATH:$ANDROID_HOME/platform-tools
+# Yarn
+if [[ -d "$HOME/.yarn/bin" ]]; then
+    export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+fi
 
-# FLUTTER
-export PATH="$PATH:$HOME/flutter/bin"
+# Java & Android
+if [[ -d "/Library/Java/JavaVirtualMachines/zulu-17.jdk" ]]; then
+    export JAVA_HOME="/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home"
+fi
 
-# JAVA
-export JAVA_HOME="/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home"
+if [[ -d "$HOME/Library/Android/sdk" ]]; then
+    export ANDROID_HOME="$HOME/Library/Android/sdk"
+    export PATH="$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools"
+fi
 
-# PYTHON
-export PATH="/usr/local/opt/python@2/libexec/bin:$PATH"
+# Python
+alias python=python3
+if [[ -d "/Library/Frameworks/Python.framework/Versions/3.11/bin" ]]; then
+    export PATH="/Library/Frameworks/Python.framework/Versions/3.11/bin:$PATH"
+fi
 
-# SUBLIME
-export PATH="/Applications/Sublime Text.app/Contents/SharedSupport/bin:$PATH"
+# Ruby (via Homebrew)
+if [[ -d "/opt/homebrew/opt/ruby/bin" ]]; then
+    export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+    if command -v gem &> /dev/null; then
+        export PATH="$(gem environment gemdir)/bin:$PATH"
+    fi
+fi
 
-# ZIG
-export PATH=$PATH:~/path/to/zig
+# Sublime
+if [[ -d "/Applications/Sublime Text.app/Contents/SharedSupport/bin" ]]; then
+    export PATH="/Applications/Sublime Text.app/Contents/SharedSupport/bin:$PATH"
+fi
 
-# fnm
- export PATH="/Users/dogukyilmaz/Library/Application Support/fnm:$PATH"
- eval "`fnm env`"
+# Fastlane
+if [[ -d "$HOME/.fastlane/bin" ]]; then
+    export PATH="$HOME/.fastlane/bin:$PATH"
+fi
 
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+# Windsurf
+if [[ -d "$HOME/.codeium/windsurf/bin" ]]; then
+    export PATH="$HOME/.codeium/windsurf/bin:$PATH"
+fi
 
-# docker compose
+# Maestro
+if [[ -d "$HOME/.maestro/bin" ]]; then
+    export PATH="$PATH:$HOME/.maestro/bin"
+fi
+
+# ============================================================================
+# ALIASES
+# ============================================================================
+
+# Docker
 alias dcup="docker compose up"
 alias dcdown="docker compose down"
 alias dcps="docker compose ps"
 alias dps="docker ps"
 
-#git
+# Git
 alias gs="git status"
 alias gf="git fetch"
 alias gp="git pull"
@@ -153,51 +126,70 @@ alias gc="git commit -m"
 alias gac="git commit -am"
 alias gcl="git clone --recursive"
 
-# locale folders
+# Navigation
 alias cddev="cd ~/Developer/"
 alias cdfork="cd ~/Developer/FORK"
 alias cdper="cd ~/Developer/Personal"
 alias cdtga="cd ~/Developer/TGA"
 
-#general
+# General
 alias cls="clear"
 alias pn=pnpm
-
-# vscode
 alias c="code"
+alias howmanylines="cloc . --exclude-dir=node_modules,.next,dist,.turbo,.git,build,public,coverage,android,ios --exclude-ext=lock,log,md,html,css,scss,svg,xml,txt,woff,woff2,ttf,otf,ico,webp,webm,mp4,mp3,webm,webp,webmanifest"
 
-
-export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
-
-# go related
+# Go
 alias air='$(go env GOPATH)/bin/air'
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-alias python=/usr/bin/python3
+# Android emulator
+alias emulator_start="emulator -avd Pixel_4a_API_34"
 
-# bun completions
-[ -s "/Users/dogukyilmaz/.bun/_bun" ] && source "/Users/dogukyilmaz/.bun/_bun"
+# ============================================================================
+# MODERN CLI TOOLS (install: brew install zoxide fzf eza bat git-delta)
+# ============================================================================
 
-# Bun
-export BUN_INSTALL="/Users/dogukyilmaz/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+# zoxide — smarter cd, learns your frequent dirs. Usage: z <partial-dir-name>
+if command -v zoxide &> /dev/null; then
+    eval "$(zoxide init zsh)"
+fi
 
-# Bun
-export BUN_INSTALL="/Users/dogukyilmaz/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+# fzf — fuzzy finder for history (Ctrl+R), files, and more
+if command -v fzf &> /dev/null; then
+    source <(fzf --zsh)
+fi
 
-# fnm
-export PATH="/Users/dogukyilmaz/Library/Application Support/fnm:$PATH"
-eval "`fnm env`"
+# eza — modern ls with git status and icons
+if command -v eza &> /dev/null; then
+    alias ls="eza --icons --group-directories-first"
+    alias ll="eza -la --icons --group-directories-first --git"
+    alias lt="eza --tree --level=2 --icons"
+fi
 
-# Added by Windsurf
-export PATH="/Users/dogukyilmaz/.codeium/windsurf/bin:$PATH"
-# The following lines have been added by Docker Desktop to enable Docker CLI completions.
-fpath=(/Users/dogukyilmaz/.docker/completions $fpath)
-autoload -Uz compinit
-compinit
-# End of Docker CLI completions
+# bat — syntax-highlighted cat
+if command -v bat &> /dev/null; then
+    alias cat="bat --paging=never"
+fi
 
+# delta — better git diffs (configure in .gitconfig)
+
+# ============================================================================
+# OPTIONAL TOOLS
+# ============================================================================
+
+# Docker CLI completions
+if [[ -d "$HOME/.docker/completions" ]]; then
+    fpath=($HOME/.docker/completions $fpath)
+    autoload -Uz compinit
+    compinit
+fi
+
+# Kiro shell integration
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
-export PATH=$PATH:$HOME/.maestro/bin
+
+# Antigravity
+if [[ -d "$HOME/.antigravity/antigravity/bin" ]]; then
+    export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
+fi
+
+# p10k theme
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

@@ -2,14 +2,14 @@
   "mcpServers": {
     "context7": {
       "command": "bunx",
-      "args": ["-y", "@upstash/context7-mcp"]
+      "args": ["-y", "@upstash/context7-mcp@latest"]
     },
     "Framelink Figma MCP": {
       "command": "npx",
       "args": [
         "-y",
         "figma-developer-mcp",
-        "--figma-api-key=figd_8GIovnmVilh_sQdyndMBWle2SGJ_mzDTB0VjDO_k",
+        "--figma-api-key=${FIGMA_API_KEY}",
         "--stdio"
       ]
     }
