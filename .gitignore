@@ -17,3 +17,5 @@ ai/**/history.*
 
 # Comparison reports (temporary)
 reports/
+
+node_modules/

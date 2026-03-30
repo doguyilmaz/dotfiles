@@ -1,4 +1,8 @@
 #!/bin/bash
+# DEPRECATED: Use `bun bin/dotfiles.ts collect` instead.
+# This script outputs markdown. The new CLI outputs .dotf format with
+# structured sections, redaction, comparison, and section listing.
+#
 # Collects AI tool configs and system info from any machine.
 # Run on work Mac, then copy the output file back to compare.
 #
