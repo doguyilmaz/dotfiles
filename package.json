@@ -1,14 +1,19 @@
 {
   "name": "@dotformat/cli",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Collect, compare, and sync machine configs across machines",
   "type": "module",
   "bin": {
-    "dotfiles": "./bin/dotfiles.js"
+    "dotfiles": "./bin/dotfiles.ts"
+  },
+  "scripts": {
+    "collect": "bun bin/dotfiles.ts collect",
+    "compare": "bun bin/dotfiles.ts compare",
+    "test": "bun test"
   },
   "files": [
-    "bin/dotfiles.js",
-    "setup/collect-machine-config.sh"
+    "bin/dotfiles.ts",
+    "src/"
   ],
   "keywords": [
     "dotfiles",
@@ -23,5 +28,11 @@
     "type": "git",
     "url": "git+https://github.com/doguyilmaz/dotfiles.git"
   },
-  "homepage": "https://github.com/doguyilmaz/dotfiles#readme"
+  "homepage": "https://github.com/doguyilmaz/dotfiles#readme",
+  "dependencies": {
+    "@dotformat/core": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
 }
