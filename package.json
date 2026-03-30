@@ -1,12 +1,27 @@
 {
-  "name": "@doguyilmaz/dotfiles",
-  "version": "0.2.0",
-  "description": "Collect machine configs for dotfiles sync",
+  "name": "@dotformat/cli",
+  "version": "0.1.0",
+  "description": "Collect, compare, and sync machine configs across machines",
+  "type": "module",
   "bin": {
     "dotfiles": "./bin/dotfiles.js"
   },
   "files": [
     "bin/dotfiles.js",
     "setup/collect-machine-config.sh"
-  ]
+  ],
+  "keywords": [
+    "dotfiles",
+    "dotf",
+    "cli",
+    "config",
+    "machine-state",
+    "sync"
+  ],
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/doguyilmaz/dotfiles.git"
+  },
+  "homepage": "https://github.com/doguyilmaz/dotfiles#readme"
 }
