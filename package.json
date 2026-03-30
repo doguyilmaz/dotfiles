@@ -1,6 +1,6 @@
 {
   "name": "@dotformat/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Collect, compare, and sync machine configs across machines",
   "type": "module",
   "bin": {
