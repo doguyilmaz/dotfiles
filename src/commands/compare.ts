@@ -1,8 +1,13 @@
 import { join } from "path";
 import { parse, compare, formatDiff } from "@dotformat/core";
 
+async function getReportsDir(): Promise<string> {
+  const cwd = process.cwd();
+  return join(cwd, "reports");
+}
+
 export async function compareCli(args: string[]) {
-  const reportsDir = join(import.meta.dir, "../../reports");
+  const reportsDir = await getReportsDir();
 
   let files: string[];
 

@@ -10,7 +10,7 @@ export const collectOllama: Collector = async () => {
 
     const items = lines.slice(1).map((line) => {
       const parts = line.split(/\s{2,}/).map((s) => s.trim()).filter(Boolean);
-      const [name, id, size, modified] = parts;
+      const [name, _id, size, modified] = parts;
       const raw = [name, size, modified].filter(Boolean).join(" | ");
       return { raw, columns: [name, size, modified].filter(Boolean) };
     }).filter((item) => item.columns.length > 0);

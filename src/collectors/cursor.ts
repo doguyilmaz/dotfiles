@@ -1,5 +1,4 @@
 import { join } from "path";
-import { Glob } from "bun";
 import type { Collector } from "./types";
 import { makeSection } from "./types";
 
@@ -15,7 +14,7 @@ export const collectCursor: Collector = async (ctx) => {
 
   try {
     const skillsDir = join(cursorDir, "skills");
-    const glob = new Glob("*");
+    const glob = new Bun.Glob("*");
     const items: { raw: string; columns: string[] }[] = [];
     for await (const entry of glob.scan(skillsDir)) {
       items.push({ raw: entry, columns: [entry] });

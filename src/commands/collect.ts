@@ -51,12 +51,21 @@ function parseArgs(args: string[]) {
   return { redact, outputDir };
 }
 
+async function resolveOutputDir(explicit: string | null): Promise<string> {
+  if (explicit) return explicit;
+
+  const cwd = process.cwd();
+  const isRepo = await Bun.file(join(cwd, ".git/HEAD")).exists();
+
+  if (isRepo) return join(cwd, "reports");
+
+  const home = Bun.env.HOME ?? "/tmp";
+  return join(home, "Downloads");
+}
+
 export async function collect(args: string[]) {
   const { redact, outputDir } = parseArgs(args);
-
-  const repoRoot = join(import.meta.dir, "../..");
-  const resolvedOutput =
-    outputDir ?? join(repoRoot, "reports");
+  const resolvedOutput = await resolveOutputDir(outputDir);
 
   await Bun.$`mkdir -p ${resolvedOutput}`.quiet();
 

@@ -4,12 +4,10 @@ import { makeSection } from "./types";
 import { redactNpmTokens } from "../utils/redact";
 
 export const collectNpm: Collector = async (ctx) => {
-  const npmrcPath = join(ctx.home, ".npmrc");
-  const file = Bun.file(npmrcPath);
+  const npmrcFile = Bun.file(join(ctx.home, ".npmrc"));
+  if (!(await npmrcFile.exists())) return {} as CollectorResult;
 
-  if (!(await file.exists())) return {} as CollectorResult;
-
-  let content = await file.text();
+  let content = await npmrcFile.text();
   if (ctx.redact) content = redactNpmTokens(content);
 
   return {
