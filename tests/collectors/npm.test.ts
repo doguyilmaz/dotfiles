@@ -2,8 +2,12 @@ import { test, expect, describe, beforeAll, afterAll } from "bun:test";
 import { join } from "path";
 import { mkdtemp, rm } from "fs/promises";
 import { tmpdir } from "os";
-import { collectNpm } from "../../src/collectors/npm";
+import { registryCollector } from "../../src/registry/collector";
+import { registryEntries } from "../../src/registry/entries";
 import type { CollectorContext } from "../../src/collectors/types";
+
+const npmEntries = registryEntries.filter((e) => e.id === "npm.config");
+const collectNpm = registryCollector(npmEntries);
 
 let tempHome: string;
 
@@ -11,7 +15,7 @@ beforeAll(async () => {
   tempHome = await mkdtemp(join(tmpdir(), "dotfiles-test-"));
   await Bun.write(
     join(tempHome, ".npmrc"),
-    `//registry.npmjs.org/:_authToken=npm_SuperSecretToken123\nregistry=https://registry.npmjs.org/\n`
+    `//registry.npmjs.org/:_authToken=npm_SuperSecretToken123\nregistry=https://registry.npmjs.org/\n`,
   );
 });
 
@@ -19,7 +23,7 @@ afterAll(async () => {
   await rm(tempHome, { recursive: true, force: true });
 });
 
-describe("collectNpm", () => {
+describe("collectNpm (registry)", () => {
   test("redacts auth token by default", async () => {
     const ctx: CollectorContext = { redact: true, home: tempHome };
     const result = await collectNpm(ctx);

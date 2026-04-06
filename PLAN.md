@@ -414,5 +414,5 @@ const registry: ConfigEntry[] = [
 | 4 | ~~Phase 6~~ | Restore (with --pick, --dry-run) | Done |
 | 5 | ~~Phase 8~~ | Diff against live system | Done |
 | 6 | Phase 9 | Init (GitHub template) | Backup + Restore |
-| 7 | Phase 10 | Config registry | — |
+| 7 | ~~Phase 10~~ | Config registry | Done |
 | 8 | Phase 11 | Multi-OS | Config registry |
