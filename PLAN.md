@@ -19,7 +19,7 @@ dotfiles list models                # → fuzzy query a section
 dotfiles compare home.dotf work.dotf # → structured diff
 ```
 
-**Status: Done (Phase 4)**
+**Status: Done**
 
 ### Journey B: "Back up my configs"
 Real file copies in structured directories. Two tracks:
@@ -45,7 +45,7 @@ Real file copies in structured directories. Two tracks:
      (user's storage, not ours)
 ```
 
-**Status: Done (Phase 5)**
+**Status: Done**
 
 ### Journey C: "Set up a new machine"
 Restore from backup. Interactive picker. Conflict resolution.
@@ -54,7 +54,7 @@ Restore from backup. Interactive picker. Conflict resolution.
 dotfiles restore ./backup --pick --dry-run
 ```
 
-**Status: Done (Phase 6)**
+**Status: Done**
 
 ---
 
@@ -89,7 +89,7 @@ Also available standalone: `dotfiles scan [path]`
 
 ---
 
-## Phase 4 — CLI Rewrite (Done)
+## 1. CLI Rewrite (Done)
 
 Rewrote bash script → Bun/TypeScript CLI outputting `.dotf` files.
 
@@ -179,7 +179,7 @@ dotfiles/
 
 ---
 
-## Phase 5 — Backup (structured file copy)
+## 2. Backup (Done)
 
 `dotfiles backup [-o path] [--only ai,shell] [--skip editors]`
 
@@ -219,15 +219,43 @@ backup/
 
 ### Key decisions
 
-- Reuses collector pattern — each collector gains a `sourcePaths()` method
-- Sensitivity scan runs before writing (Phase 7)
+- Registry-driven — backup sources generated from `src/registry/entries.ts`
+- Sensitivity scan runs before writing
 - `--only` / `--skip` for selective backup
 - Clone track: writes into repo structure → user commits
 - CLI-only track: still uses `.dotf` single-file export
 
 ---
 
-## Phase 6 — Restore
+## 3. Sensitivity Scan (Done)
+
+`dotfiles scan [path]` — also runs automatically during backup/collect.
+
+### Detection patterns
+
+| Level | Pattern | Example |
+|---|---|---|
+| HIGH | Private key headers | `-----BEGIN.*PRIVATE KEY-----` |
+| HIGH | Auth tokens | `_authToken=`, `Bearer `, `sk-`, `ghp_`, `npm_` |
+| HIGH | AWS keys | `AKIA...`, `aws_secret_access_key` |
+| HIGH | SaaS keys | Stripe, Mapbox, Slack, SendGrid, Discord, etc. |
+| HIGH | AI keys | OpenAI `sk-`, Anthropic `sk-ant-` |
+| HIGH | Database URLs | `postgres://`, `mongodb://`, `redis://` |
+| HIGH | Generic secrets | `PASSWORD=`, `SECRET=`, `API_KEY=` |
+| MEDIUM | IP addresses | `\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b` |
+| MEDIUM | Email addresses | `\b\w+@\w+\.\w+\b` |
+| LOW | Home directory paths | `/Users/<username>/`, `/home/<username>/` |
+
+### Actions
+
+- `redact` → replace value with `[REDACTED]` (default for HIGH)
+- `skip` → exclude entire file from output (default for private keys)
+- `include` → keep as-is with warning (default for LOW)
+- `--no-redact` → bypass all, include everything
+
+---
+
+## 4. Restore (Done)
 
 `dotfiles restore <path> [--pick] [--dry-run]`
 
@@ -245,31 +273,7 @@ dotfiles restore ./backup --dry-run    # preview only, no changes
 
 ---
 
-## Phase 7 — Sensitivity Scan
-
-`dotfiles scan [path]` — also runs automatically during backup/collect.
-
-### Detection patterns
-
-| Level | Pattern | Example |
-|---|---|---|
-| HIGH | Private key headers | `-----BEGIN.*PRIVATE KEY-----` |
-| HIGH | Auth tokens | `_authToken=`, `Bearer `, `sk-`, `ghp_`, `npm_` |
-| HIGH | AWS keys | `AKIA...`, `aws_secret_access_key` |
-| MEDIUM | IP addresses | `\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b` |
-| MEDIUM | Email addresses | `\b\w+@\w+\.\w+\b` |
-| LOW | Home directory paths | `/Users/<username>/`, `/home/<username>/` |
-
-### Actions
-
-- `redact` → replace value with `[REDACTED]` (default for HIGH)
-- `skip` → exclude entire file from output (default for private keys)
-- `include` → keep as-is with warning (default for LOW)
-- `--no-redact` → bypass all, include everything
-
----
-
-## Phase 8 — Diff Against Live
+## 5. Diff Against Live (Done)
 
 `dotfiles diff [--section ai]`
 
@@ -283,13 +287,51 @@ dotfiles diff
 # ai/windsurf/mcp_config.json — new file (not in backup)
 ```
 
-- Uses `@dotformat/core` compare under the hood
-- Color-coded: green (unchanged), yellow (modified), red (deleted from machine), blue (new on machine)
+- Color-coded: green (unchanged), yellow (modified), blue (new), gray (redacted)
 - `--section` flag for scoped diff
+- Auto-finds latest backup if no path given
 
 ---
 
-## Phase 9 — Init (GitHub template flow)
+## 6. Config Registry (Done)
+
+Extensible manifest of what configs exist and where they live on each OS.
+
+```typescript
+const registry: ConfigEntry[] = [
+  {
+    id: "shell.zshrc",
+    name: ".zshrc",
+    paths: { darwin: "~/.zshrc", linux: "~/.zshrc" },
+    category: "shell",
+    kind: { type: "file" },
+    backupDest: "shell/.zshrc",
+    sensitivity: "low",
+  },
+];
+```
+
+- Single source of truth — replaces 11 hardcoded collector files
+- Generates collectors and backup sources automatically
+- Users extend via `dotfiles add ~/.config/starship.toml` (future)
+- Platform-aware paths enable Multi-OS support
+- Categories power `--only` / `--skip` filtering
+
+---
+
+## 7. Multi-OS (Done)
+
+- macOS: `~/Library/Application Support/...`
+- Linux: `~/.config/...`
+- Windows: `%APPDATA%/...`, `%USERPROFILE%/...`
+- Registry entries have per-platform paths (`darwin`, `linux`, `win32`)
+- `resolvePath()` handles `~`, `%APPDATA%`, `%USERPROFILE%` expansion
+- OS-specific collectors have platform guards (`brew` only on macOS)
+- Shell configs (zshrc, p10k, tmux) excluded on Windows (no path = auto-skip)
+
+---
+
+## 8. Init (GitHub template flow)
 
 `dotfiles init` → guided onboarding for new users.
 
@@ -333,55 +375,6 @@ curl -fsSL https://raw.githubusercontent.com/you/my-dotfiles/main/install.sh | b
 
 ---
 
-## Phase 10 — Config Registry
-
-Extensible manifest of what configs exist and where they live on each OS.
-
-```typescript
-// src/registry.ts
-const registry: ConfigEntry[] = [
-  {
-    id: "shell.zshrc",
-    name: ".zshrc",
-    paths: {
-      darwin: "~/.zshrc",
-      linux: "~/.zshrc",
-    },
-    category: "shell",
-    sensitivity: "low",
-  },
-  {
-    id: "editor.cursor",
-    name: "Cursor Settings",
-    paths: {
-      darwin: "~/Library/Application Support/Cursor/User/settings.json",
-      linux: "~/.config/Cursor/User/settings.json",
-      win32: "%APPDATA%/Cursor/User/settings.json",
-    },
-    category: "editor",
-    sensitivity: "low",
-  },
-  // Users can add custom entries...
-];
-```
-
-- Replaces hardcoded paths in collectors
-- Users extend via `dotfiles.config.ts` or `dotfiles add ~/.config/starship.toml`
-- Enables multi-OS support without rewriting collectors
-- Categories power `--only` / `--skip` filtering
-
----
-
-## Phase 11 — Multi-OS
-
-- macOS: `~/Library/Application Support/...`
-- Linux: `~/.config/...`
-- Windows: `%APPDATA%/...`
-- Uses Config Registry (Phase 10) for path resolution
-- OS-specific collectors (e.g., `brew` only on macOS, `apt` on Linux, `winget` on Windows)
-
----
-
 ## Ideas Backlog
 
 - [x] Timestamped report filenames — `<hostname>-YYYYMMDDHHMMSS.dotf`, no overwrites
@@ -404,15 +397,15 @@ const registry: ConfigEntry[] = [
 
 ---
 
-## Priority Order
+## Progress
 
-| # | Phase | What | Depends on |
-|---|---|---|---|
-| 1 | ~~Phase 4~~ | CLI rewrite (collect, compare, list) | Done |
-| 2 | ~~Phase 5~~ | Backup (structured file copy) | Done |
-| 3 | ~~Phase 7~~ | Sensitivity scan | Done |
-| 4 | ~~Phase 6~~ | Restore (with --pick, --dry-run) | Done |
-| 5 | ~~Phase 8~~ | Diff against live system | Done |
-| 6 | Phase 9 | Init (GitHub template) | Backup + Restore |
-| 7 | Phase 10 | Config registry | — |
-| 8 | Phase 11 | Multi-OS | Config registry |
+| # | What | Status |
+|---|---|---|
+| 1 | CLI rewrite (collect, compare, list) | Done |
+| 2 | Backup (structured file copy) | Done |
+| 3 | Sensitivity scan | Done |
+| 4 | Restore (with --pick, --dry-run, pre-restore snapshot) | Done |
+| 5 | Diff against live system | Done |
+| 6 | Config registry | Done |
+| 7 | Multi-OS | Done |
+| 8 | Init (GitHub template) | Planned |

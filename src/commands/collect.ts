@@ -8,38 +8,18 @@ import { resolveOutputDir } from "../utils/resolve-output";
 import { getHome } from "../utils/home";
 import { scanContent, summarize, formatReport, applyRedactions } from "../scan";
 import type { ScanResult } from "../scan";
+import { registryEntries, registryCollector } from "../registry";
 import { collectMeta } from "../collectors/meta";
-import { collectClaude } from "../collectors/claude";
-import { collectCursor } from "../collectors/cursor";
-import { collectGemini } from "../collectors/gemini";
-import { collectWindsurf } from "../collectors/windsurf";
-import { collectOllama } from "../collectors/ollama";
-import { collectShell } from "../collectors/shell";
-import { collectGit } from "../collectors/git";
-import { collectGh } from "../collectors/gh";
-import { collectEditors } from "../collectors/editors";
-import { collectTerminal } from "../collectors/terminal";
 import { collectSsh } from "../collectors/ssh";
-import { collectNpm } from "../collectors/npm";
-import { collectBunConfig } from "../collectors/bun-config";
+import { collectOllama } from "../collectors/ollama";
 import { collectApps } from "../collectors/apps";
 import { collectHomebrew } from "../collectors/homebrew";
 
 const collectors = [
   collectMeta,
-  collectClaude,
-  collectCursor,
-  collectGemini,
-  collectWindsurf,
-  collectOllama,
-  collectShell,
-  collectGit,
-  collectGh,
-  collectEditors,
-  collectTerminal,
+  registryCollector(registryEntries),
   collectSsh,
-  collectNpm,
-  collectBunConfig,
+  collectOllama,
   collectApps,
   collectHomebrew,
 ];
