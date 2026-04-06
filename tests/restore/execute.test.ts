@@ -3,7 +3,7 @@ import { join } from "path";
 import { mkdtemp, rm } from "fs/promises";
 import { tmpdir } from "os";
 import { buildRestorePlan } from "../../src/restore/plan";
-import { executeRestore } from "../../src/restore/execute";
+import { executeRestore, createSnapshot } from "../../src/restore/execute";
 
 let tempHome: string;
 let tempBackup: string;
@@ -48,6 +48,39 @@ describe("executeRestore", () => {
     const content = await zedFile.text();
     expect(content).toBe('{"theme":"One Dark"}');
 
+    await rm(restoreHome, { recursive: true, force: true });
+  });
+
+  test("creates pre-restore snapshot for conflicts", async () => {
+    const restoreHome = await mkdtemp(join(tmpdir(), "restore-snapshot-"));
+    await Bun.write(join(restoreHome, ".zshrc"), "original zshrc content");
+
+    const plan = await buildRestorePlan(tempBackup, restoreHome);
+    const conflictEntries = plan.entries.filter((e) => e.status === "conflict");
+    expect(conflictEntries.length).toBeGreaterThan(0);
+
+    const conflictPlan = { ...plan, entries: conflictEntries };
+    const snapshotDir = await createSnapshot(conflictPlan);
+
+    expect(snapshotDir).not.toBeNull();
+    const snapshotFile = Bun.file(join(snapshotDir!, "shell/.zshrc"));
+    expect(await snapshotFile.exists()).toBe(true);
+    const content = await snapshotFile.text();
+    expect(content).toBe("original zshrc content");
+
+    await rm(snapshotDir!, { recursive: true, force: true });
+    await rm(restoreHome, { recursive: true, force: true });
+  });
+
+  test("no snapshot when no conflicts", async () => {
+    const restoreHome = await mkdtemp(join(tmpdir(), "restore-no-snap-"));
+    const plan = await buildRestorePlan(tempBackup, restoreHome);
+
+    const newEntries = plan.entries.filter((e) => e.status === "new");
+    const newPlan = { ...plan, entries: newEntries };
+    const snapshotDir = await createSnapshot(newPlan);
+
+    expect(snapshotDir).toBeNull();
     await rm(restoreHome, { recursive: true, force: true });
   });
 

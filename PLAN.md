@@ -240,6 +240,7 @@ dotfiles restore ./backup --dry-run    # preview only, no changes
 - `--pick` → checkbox UI: select which configs to restore
 - `--dry-run` → shows what would change, doesn't touch anything
 - Conflict handling: if target file differs, prompt overwrite / skip / show diff
+- Pre-restore snapshot: before any overwrite, saves old files to `pre-restore-<timestamp>/` — same backup format, reversible with `dotfiles restore`
 - Supports `.local` override pattern: if `backup/shell/.zshrc.local` exists, restore it alongside `.zshrc`
 
 ---
