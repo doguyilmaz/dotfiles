@@ -39,7 +39,7 @@ switch (command) {
 
 Commands:
   collect [--no-redact] [--slim] [-o path]            Collect machine config → .dotf report
-  backup  [--no-redact] [-o path] [--only] [--skip]  Backup config files → structured directory
+  backup  [--no-redact] [--archive] [-o path]         Backup config files (--archive for .tar.gz)
   scan    [path]                                     Scan files for sensitive data
   restore <path> [--pick] [--dry-run]                Restore config files from backup
   diff    [path] [--section <name>]                  Compare backup against live system

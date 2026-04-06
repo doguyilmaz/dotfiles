@@ -412,9 +412,9 @@ Bun requirement, full CLI usage docs, all commands documented.
 - [ ] Shallow clone + submodules for fast remote install
 - [ ] Plugin system — community collectors for tools we don't cover
 - [ ] Stream-based file copy — `Bun.file().stream()` for memory-safe large backup operations
-- [ ] Archive output — `Bun.Archiver` for `.tar.gz` backup export, `Bun.TarReader` for reading
+- [x] Archive output — `--archive` flag for `.tar.gz` backup export (uses system tar, migrate to `Bun.Archiver` when available)
 - [ ] Binary format — optional `--format binary` for `.dotf` files
-- [ ] Pluggable output format — `--format json|yaml|toml|dotf` via registry layer
+- [ ] Pluggable output format — `--format json|yaml|toml|dotf` via registry layer. Bun has native TOML/YAML parsers — use them when implementing
 - [ ] `bun build --compile` — standalone binary distribution (no Bun install required)
 - [ ] License — change to MIT when going public
 - [ ] Init (GitHub template flow) — guided onboarding, `gh` repo create, one-line install
