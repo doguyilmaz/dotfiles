@@ -54,7 +54,7 @@ Restore from backup. Interactive picker. Conflict resolution.
 dotfiles restore ./backup --pick --dry-run
 ```
 
-**Status: Planned (Phase 6)**
+**Status: Done (Phase 6)**
 
 ---
 
@@ -406,7 +406,7 @@ const registry: ConfigEntry[] = [
 | 1 | ~~Phase 4~~ | CLI rewrite (collect, compare, list) | Done |
 | 2 | ~~Phase 5~~ | Backup (structured file copy) | Done |
 | 3 | ~~Phase 7~~ | Sensitivity scan | Done |
-| 4 | Phase 6 | Restore (with --pick, --dry-run) | Backup |
+| 4 | ~~Phase 6~~ | Restore (with --pick, --dry-run) | Done |
 | 5 | Phase 8 | Diff against live system | Backup |
 | 6 | Phase 9 | Init (GitHub template) | Backup + Restore |
 | 7 | Phase 10 | Config registry | — |
