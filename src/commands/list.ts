@@ -8,6 +8,11 @@ function fuzzyMatch(query: string, sectionName: string): boolean {
   return s.includes(q) || s.split(".").some((part) => part.includes(q));
 }
 
+async function getReportsDir(): Promise<string> {
+  const cwd = process.cwd();
+  return join(cwd, "reports");
+}
+
 export async function list(args: string[]) {
   if (!args.length) {
     console.log("Usage: dotfiles list <section>");
@@ -16,7 +21,7 @@ export async function list(args: string[]) {
   }
 
   const query = args[0];
-  const reportsDir = join(import.meta.dir, "../../reports");
+  const reportsDir = await getReportsDir();
 
   const glob = new Bun.Glob("*.dotf");
   const entries: { path: string; mtime: number }[] = [];

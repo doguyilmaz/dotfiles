@@ -1,7 +1,6 @@
 import { join } from "path";
 import type { Collector, CollectorResult } from "./types";
 import { makeSection } from "./types";
-import { redactSshConfig, redactIPs } from "../utils/redact";
 
 interface SshHost {
   host: string;
