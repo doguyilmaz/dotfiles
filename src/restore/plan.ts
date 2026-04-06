@@ -32,7 +32,7 @@ async function resolveFileStatus(backupContent: string, targetPath: string): Pro
   if (!(await targetFile.exists())) return "new";
 
   const targetContent = await targetFile.text();
-  return backupContent === targetContent ? "same" : "conflict";
+  return Bun.hash(backupContent) === Bun.hash(targetContent) ? "same" : "conflict";
 }
 
 export async function buildRestorePlan(backupDir: string, home: string): Promise<RestorePlan> {

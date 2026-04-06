@@ -10,18 +10,20 @@ import type { BackupEntry, BackupSource } from '../backup/types';
 
 function parseArgs(args: string[]) {
   let redact = true;
+  let archive = false;
   let outputDir: string | null = null;
   let only: string[] = [];
   let skip: string[] = [];
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--no-redact') redact = false;
+    if (args[i] === '--archive') archive = true;
     if (args[i] === '-o' && args[i + 1]) outputDir = args[++i];
     if (args[i] === '--only' && args[i + 1]) only = args[++i].split(',');
     if (args[i] === '--skip' && args[i + 1]) skip = args[++i].split(',');
   }
 
-  return { redact, outputDir, only, skip };
+  return { redact, archive, outputDir, only, skip };
 }
 
 function filterSources(sources: BackupSource[], only: string[], skip: string[]): BackupSource[] {
@@ -80,7 +82,7 @@ async function copyDir(entry: BackupEntry & { type: 'dir' }, destRoot: string): 
 }
 
 export async function backup(args: string[]) {
-  const { redact, outputDir, only, skip } = parseArgs(args);
+  const { redact, archive, outputDir, only, skip } = parseArgs(args);
   const resolvedOutput = await resolveOutputDir(outputDir);
 
   const ts = generateTimestamp();
@@ -115,8 +117,17 @@ export async function backup(args: string[]) {
     return;
   }
 
-  console.log(`Backup saved to: ${backupDir}`);
-  console.log(`  ${totalFiles} files across: ${backedUpCategories.join(', ')}`);
+  if (archive) {
+    const archivePath = `${backupDir}.tar.gz`;
+    const backupName = backupDir.split("/").pop()!;
+    await Bun.$`tar czf ${archivePath} -C ${resolvedOutput} ${backupName}`.quiet();
+    await Bun.$`rm -rf ${backupDir}`.quiet();
+    console.log(`Archive saved to: ${archivePath}`);
+    console.log(`  ${totalFiles} files across: ${backedUpCategories.join(', ')}`);
+  } else {
+    console.log(`Backup saved to: ${backupDir}`);
+    console.log(`  ${totalFiles} files across: ${backedUpCategories.join(', ')}`);
+  }
 
   if (redact) {
     const summary = summarize(scanResults);

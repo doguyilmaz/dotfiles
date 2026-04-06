@@ -28,6 +28,7 @@ beforeAll(async () => {
   await Bun.write(join(tempBackup, "git/.gitconfig"), "[user]\n  name = Test");
   await Bun.write(join(tempBackup, "ssh/config"), "Host github.com\n  HostName [REDACTED]");
   await Bun.write(join(tempBackup, "editor/zed/settings.json"), '{"theme":"Dark"}');
+  await Bun.write(join(tempBackup, "shell/.zshrc.local"), "# local overrides");
 });
 
 afterAll(async () => {
@@ -97,6 +98,14 @@ describe("buildRestorePlan", () => {
     expect(skill).toBeDefined();
     expect(skill!.targetPath).toBe(join(tempHome, ".claude/skills/skill1.md"));
     expect(skill!.category).toBe("ai");
+  });
+
+  test("maps .local override files", async () => {
+    const plan = await buildRestorePlan(tempBackup, tempHome);
+    const local = plan.entries.find((e) => e.backupPath === "shell/.zshrc.local");
+    expect(local).toBeDefined();
+    expect(local!.targetPath).toBe(join(tempHome, ".zshrc.local"));
+    expect(local!.category).toBe("shell");
   });
 
   test("includes correct categories", async () => {

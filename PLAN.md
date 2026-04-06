@@ -375,25 +375,49 @@ curl -fsSL https://raw.githubusercontent.com/you/my-dotfiles/main/install.sh | b
 
 ---
 
+## 8. Quick Wins (from backlog)
+
+Low-effort, high-impact improvements to daily usage.
+
+### 8a. `dotfiles status`
+Quick summary: what's changed, what's backed up, what's new.
+```bash
+dotfiles status
+# Last backup: 2h ago (backup-doguyilmaz.local-20260407...)
+# 3 modified since backup, 143 unchanged
+# Modified: shell/.zshrc, ai/claude/settings.json, git/.gitconfig
+```
+
+### 8b. `--slim` flag for collect
+AI token-efficient snapshots — strips verbose content, keeps structure + metadata only.
+```bash
+dotfiles collect --slim    # smaller .dotf, good for feeding to AI
+```
+
+### 8c. Parallel collectors
+`Promise.allSettled` for independent collectors (brew, ollama, file reads) — faster collect.
+
+### 8d. Update README
+Bun requirement, full CLI usage docs, all commands documented.
+
+---
+
 ## Ideas Backlog
 
 - [x] Timestamped report filenames — `<hostname>-YYYYMMDDHHMMSS.dotf`, no overwrites
-- [ ] `--slim` flag for `collect` — AI token-efficient snapshots
 - [ ] `.local` override pattern — separate shared vs machine-specific configs (inspired by gko/dotfiles)
 - [ ] `--assume-unchanged` for sensitive template files in GitHub flow
 - [ ] Profile switching — `dotfiles use work` / `dotfiles use personal`
 - [ ] Encryption for sensitive files — encrypt with passphrase before storing, decrypt on restore
-- [ ] `dotfiles status` — quick summary of what's changed, what's backed up, what's new
 - [ ] Shallow clone + submodules for fast remote install
 - [ ] Plugin system — community collectors for tools we don't cover
-- [ ] Update README with Bun requirement and full CLI usage docs
 - [ ] Stream-based file copy — `Bun.file().stream()` for memory-safe large backup operations
-- [ ] Archive output — `Bun.Archiver` for `.tar.gz` backup export, `Bun.TarReader` for reading. Single portable file, corruption-resistant
-- [ ] Binary format — optional `--format binary` for `.dotf` files. Smaller size + not human-readable. Text stays default, binary is opt-in. Compare both formats for size difference
-- [ ] Pluggable output format — `--format json|yaml|toml|dotf` via registry layer. `.dotf` default, others opt-in
+- [x] Archive output — `--archive` flag for `.tar.gz` backup export (uses system tar, migrate to `Bun.Archiver` when available)
+- [ ] Binary format — optional `--format binary` for `.dotf` files
+- [ ] Pluggable output format — `--format json|yaml|toml|dotf` via registry layer. Bun has native TOML/YAML parsers — use them when implementing
 - [ ] `bun build --compile` — standalone binary distribution (no Bun install required)
 - [ ] License — change to MIT when going public
-- [ ] Parallel collectors — `Promise.allSettled` for independent collectors (brew, ollama, file reads)
+- [ ] Init (GitHub template flow) — guided onboarding, `gh` repo create, one-line install
 
 ---
 
@@ -408,4 +432,7 @@ curl -fsSL https://raw.githubusercontent.com/you/my-dotfiles/main/install.sh | b
 | 5 | Diff against live system | Done |
 | 6 | Config registry | Done |
 | 7 | Multi-OS | Done |
-| 8 | Init (GitHub template) | Planned |
+| 8a | `dotfiles status` | Next |
+| 8b | `--slim` flag | Next |
+| 8c | Parallel collectors | Next |
+| 8d | README update | Next |
