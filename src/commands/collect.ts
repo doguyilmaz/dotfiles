@@ -3,6 +3,7 @@ import { join } from "path";
 import { stringify } from "@dotformat/core";
 import type { DotfDocument } from "@dotformat/core";
 import type { CollectorContext, CollectorResult } from "../collectors/types";
+import { resolveOutputDir } from "../utils/resolve-output";
 import { collectMeta } from "../collectors/meta";
 import { collectClaude } from "../collectors/claude";
 import { collectCursor } from "../collectors/cursor";
@@ -49,18 +50,6 @@ function parseArgs(args: string[]) {
   }
 
   return { redact, outputDir };
-}
-
-async function resolveOutputDir(explicit: string | null): Promise<string> {
-  if (explicit) return explicit;
-
-  const cwd = process.cwd();
-  const isRepo = await Bun.file(join(cwd, ".git/HEAD")).exists();
-
-  if (isRepo) return join(cwd, "reports");
-
-  const home = Bun.env.HOME ?? "/tmp";
-  return join(home, "Downloads");
 }
 
 export async function collect(args: string[]) {
