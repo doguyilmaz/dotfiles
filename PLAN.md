@@ -1,69 +1,111 @@
-# Phase 4 — Dotfiles CLI Rewrite in Bun
+# Dotfiles CLI — Master Plan
 
-## Context
+> The ultimate machine identity tool. Collect, backup, restore, compare, and sync configs across machines.
 
-The dotfiles repo has a bash script (`setup/collect-machine-config.sh`) that collects machine configs and outputs markdown reports. Markdown is unstructured — hard to diff, impossible to parse programmatically. Phase 4 rewrites this in Bun/TypeScript, outputting `.dotf` files using `@dotformat/core`.
-
+**Runtime:** Bun (required) — uses `Bun.file()`, `Bun.$`, `Bun.Glob` throughout
 **Depends on:** `@dotformat/core` (parse, stringify, compare, formatDiff)
+**Package:** `@dotformat/cli`
 
-## File Structure
+---
 
-```
-dotfiles/
-├── src/
-│   ├── cli.ts                    # Entry point — command routing
-│   ├── commands/
-│   │   ├── collect.ts            # Orchestrates all collectors → .dotf file
-│   │   ├── compare.ts            # Diffs two .dotf reports (uses @dotformat/core)
-│   │   └── list.ts               # Prints a single section from a report
-│   ├── collectors/
-│   │   ├── types.ts              # CollectorContext, CollectorResult types
-│   │   ├── meta.ts               # hostname, OS, date
-│   │   ├── claude.ts             # settings.json plugins, skills, CLAUDE.md
-│   │   ├── cursor.ts             # mcp.json, skills
-│   │   ├── gemini.ts             # settings.json, GEMINI.md, skills
-│   │   ├── windsurf.ts           # mcp_config.json, skills
-│   │   ├── ollama.ts             # ollama list (models + sizes + dates)
-│   │   ├── shell.ts              # .zshrc content
-│   │   ├── git.ts                # .gitconfig content
-│   │   ├── gh.ts                 # gh config.yml content
-│   │   ├── editors.ts            # Zed + Cursor editor settings
-│   │   ├── terminal.ts           # p10k check
-│   │   ├── ssh.ts                # SSH config → host items (redacted)
-│   │   ├── npm.ts                # .npmrc (token redacted)
-│   │   ├── bun-config.ts         # bunfig.toml
-│   │   ├── apps.ts               # /Applications, Raycast, AltTab
-│   │   └── homebrew.ts           # brew formulae + casks
-│   └── utils/
-│       └── redact.ts             # Redaction patterns + helpers
-├── tests/
-│   ├── collectors/               # Collector unit tests
-│   └── utils/
-│       └── redact.test.ts        # Redaction pattern tests
-├── bin/
-│   └── dotfiles.ts               # #!/usr/bin/env bun shebang entry
-└── package.json                  # @dotformat/cli, depends on @dotformat/core
-```
+## User Journeys
 
-## CLI Commands
+### Journey A: "What's on my machine?"
+Single-file `.dotf` snapshot — parseable, diffable, queryable.
 
 ```bash
-dotfiles collect                      # → reports/<hostname>.dotf
-dotfiles collect --no-redact          # real IPs/keys included
-dotfiles collect -o /custom/path      # custom output dir
-dotfiles compare                      # auto-picks 2 most recent .dotf reports
-dotfiles compare home.dotf work.dotf  # explicit files
-dotfiles list models                  # fuzzy-matches section name, prints it
+dotfiles collect                    # → reports/<hostname>.dotf
+dotfiles list models                # → fuzzy query a section
+dotfiles compare home.dotf work.dotf # → structured diff
 ```
 
-## Collector Pattern
+**Status: Done (Phase 4)**
 
-Each collector is an async function that returns named sections:
+### Journey B: "Back up my configs"
+Real file copies in structured directories. Two tracks:
+
+```
+                    ┌─────────────────┐
+                    │  dotfiles CLI    │
+                    └────────┬────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+        Clone track                    CLI-only track
+     (power users)                   (quick & portable)
+              │                             │
+    ┌─────────┴─────────┐          ┌───────┴───────┐
+    │ Real files in repo │          │ Single .dotf  │
+    │ shell/.zshrc       │          │ snapshot file │
+    │ ai/claude/...      │          │ (carry/email) │
+    │ git/.gitconfig     │          └───────────────┘
+    └─────────┬──────────┘
+              │
+     git push to private repo
+     (user's storage, not ours)
+```
+
+**Status: Planned (Phase 5)**
+
+### Journey C: "Set up a new machine"
+Restore from backup. Interactive picker. Conflict resolution.
+
+```bash
+dotfiles restore ./backup --pick --dry-run
+```
+
+**Status: Planned (Phase 6)**
+
+---
+
+## Sensitivity Model
+
+Never silent about sensitive data. Three layers:
+
+1. **Detection** — regex patterns (tokens, keys, IPs, passwords, private keys)
+2. **Classification** — HIGH (private keys, auth tokens) / MEDIUM (IPs, emails) / LOW (usernames, paths)
+3. **Action** — per-finding: redact / skip / include / warn-only
+
+Runs automatically during `backup` and `collect`. Summary at the end:
+
+```
+⚠ Sensitivity report:
+  HIGH   ~/.ssh/id_ed25519         private key — skipped
+  HIGH   ~/.npmrc                  auth token — redacted
+  MEDIUM ~/.gitconfig              email address — included
+
+  2 items redacted, 1 skipped. Use --no-redact to include all.
+```
+
+Also available standalone: `dotfiles scan [path]`
+
+---
+
+## Output Path Logic
+
+- `-o /path` → explicit custom directory
+- Running from cloned repo (`.git` detected in cwd) → `reports/` under repo root
+- Running as global CLI (no `.git`) → `~/Downloads`
+
+---
+
+## Phase 4 — CLI Rewrite (Done)
+
+Rewrote bash script → Bun/TypeScript CLI outputting `.dotf` files.
+
+### Commands
+
+```bash
+dotfiles collect [--no-redact] [-o path]
+dotfiles compare [file1] [file2]
+dotfiles list <section>
+```
+
+### Collector Pattern
 
 ```typescript
-// src/collectors/types.ts
 interface CollectorContext {
-  redact: boolean   // true by default, false with --no-redact
+  redact: boolean   // true by default
   home: string      // $HOME — injected for testability
 }
 
@@ -75,24 +117,24 @@ type Collector = (ctx: CollectorContext) => Promise<CollectorResult>
 - Uses `Bun.file()` for reads, `Bun.$` for shell commands
 - Wraps `Bun.$` calls in try/catch (brew, ollama may not be installed)
 
-## Section Mapping
+### Section Mapping
 
 | Section | Type | Source |
 |---|---|---|
 | `meta` | pairs | hostname, OS, date |
-| `ai.claude.plugins` | pairs | `~/.claude/settings.json` |
+| `ai.claude.settings` | pairs | `~/.claude/settings.json` (permissions + enabledPlugins) |
 | `ai.claude.skills` | items | `ls ~/.claude/skills/` |
-| `file:claude/CLAUDE.md` | content | `~/.claude/CLAUDE.md` |
+| `ai.claude.md` | content | `~/.claude/CLAUDE.md` |
 | `ai.cursor.mcp` | content | `~/.cursor/mcp.json` |
 | `ai.cursor.skills` | items | `ls ~/.cursor/skills/` |
 | `ai.gemini.settings` | pairs | `~/.gemini/settings.json` |
 | `ai.gemini.skills` | items | `ls ~/.gemini/skills/` |
-| `file:gemini/GEMINI.md` | content | `~/.gemini/GEMINI.md` |
+| `ai.gemini.md` | content | `~/.gemini/GEMINI.md` |
 | `ai.windsurf.mcp` | content | `~/.codeium/windsurf/mcp_config.json` |
 | `ai.windsurf.skills` | items | `ls ~/.codeium/windsurf/skills/` |
 | `ai.ollama.models` | items (piped) | `ollama list` parsed |
-| `file:shell/zshrc` | content | `~/.zshrc` |
-| `file:git/gitconfig` | content | `~/.gitconfig` |
+| `shell.zshrc` | content | `~/.zshrc` |
+| `git.config` | content | `~/.gitconfig` |
 | `gh.config` | content | `~/.config/gh/config.yml` |
 | `editor.zed` | content | `~/.config/zed/settings.json` |
 | `editor.cursor` | content | `~/Library/.../Cursor/User/settings.json` |
@@ -105,103 +147,263 @@ type Collector = (ctx: CollectorContext) => Promise<CollectorResult>
 | `apps.macos` | items | `ls /Applications/` |
 | `apps.brew.formulae` | items | `brew list --formula` |
 | `apps.brew.casks` | items | `brew list --cask` |
+| `terminal.tmux` | content | `~/.tmux.conf` |
+| `editor.nvim` | content | `~/.config/nvim/init.lua` or `~/.vimrc` |
 
-JSON configs (MCP, editor settings) stored as content blocks — opaque snapshots, not parsed into key-value.
+### File Structure
 
-## Redaction
-
-- Default: `ctx.redact = true`
-- SSH: HostName and IdentityFile → `[REDACTED]`
-- npm: `_authToken=...` → `_authToken=[REDACTED]`
-- IP addresses: `\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b` → `[REDACTED]`
-- `--no-redact` flag sets `ctx.redact = false`, bypasses all
-
-## @dotformat/core API Reference
-
-```typescript
-// Types
-interface DotfDocument { sections: Record<string, DotfSection> }
-interface DotfSection { name: string; pairs: Record<string, string>; items: DotfItem[]; content: string | null }
-interface DotfItem { raw: string; columns: string[] }
-
-// Functions
-parse(input: string): DotfDocument
-stringify(doc: DotfDocument): string
-compare(left: DotfDocument, right: DotfDocument): DotfDiff
-formatDiff(diff: DotfDiff, options?: { leftLabel?: string; rightLabel?: string; color?: boolean }): string
+```
+dotfiles/
+├── src/
+│   ├── cli.ts                    # Entry point — command routing
+│   ├── commands/
+│   │   ├── collect.ts            # Orchestrates all collectors → .dotf file
+│   │   ├── compare.ts            # Diffs two .dotf reports
+│   │   └── list.ts               # Fuzzy section query
+│   ├── collectors/
+│   │   ├── types.ts              # CollectorContext, CollectorResult, makeSection
+│   │   ├── meta.ts, claude.ts, cursor.ts, gemini.ts, windsurf.ts
+│   │   ├── ollama.ts, shell.ts, git.ts, gh.ts, editors.ts
+│   │   ├── terminal.ts, ssh.ts, npm.ts, bun-config.ts
+│   │   ├── apps.ts, homebrew.ts
+│   └── utils/
+│       └── redact.ts             # Redaction patterns
+├── tests/
+│   ├── collectors/               # meta, ssh, npm, claude tests
+│   ├── commands/                 # list fuzzy match tests
+│   └── utils/                    # redact tests
+├── bin/
+│   └── dotfiles.ts               # #!/usr/bin/env bun
+└── package.json
 ```
 
-To build a `DotfSection`:
-```typescript
-const section: DotfSection = {
-  name: "meta",
-  pairs: { host: "MacBook", os: "Darwin arm64" },
-  items: [],
-  content: null
-}
+---
+
+## Phase 5 — Backup (structured file copy)
+
+`dotfiles backup [-o path] [--only ai,shell] [--skip editors]`
+
+Real files in real directory structure. Only creates what exists (no empty folders).
+
+```
+backup/
+├── ai/
+│   ├── claude/
+│   │   ├── settings.json
+│   │   ├── CLAUDE.md
+│   │   └── skills/
+│   ├── cursor/
+│   │   └── mcp.json
+│   ├── gemini/
+│   │   ├── settings.json
+│   │   └── GEMINI.md
+│   └── windsurf/
+│       └── mcp_config.json
+├── shell/
+│   └── .zshrc
+├── git/
+│   ├── .gitconfig
+│   └── .gitignore_global
+├── editor/
+│   ├── zed/settings.json
+│   └── cursor/settings.json
+├── terminal/
+│   └── .p10k.zsh
+├── ssh/
+│   └── config              # redacted by default
+├── npm/
+│   └── .npmrc              # redacted by default
+└── bun/
+    └── .bunfig.toml
 ```
 
-To build piped items:
-```typescript
-const item: DotfItem = {
-  raw: "llama3.1:latest | 4.9GB | 2025-05-15",
-  columns: ["llama3.1:latest", "4.9GB", "2025-05-15"]
-}
+### Key decisions
+
+- Reuses collector pattern — each collector gains a `sourcePaths()` method
+- Sensitivity scan runs before writing (Phase 7)
+- `--only` / `--skip` for selective backup
+- Clone track: writes into repo structure → user commits
+- CLI-only track: still uses `.dotf` single-file export
+
+---
+
+## Phase 6 — Restore
+
+`dotfiles restore <path> [--pick] [--dry-run]`
+
+```bash
+dotfiles restore ./backup              # restore everything
+dotfiles restore ./backup --pick       # interactive section picker
+dotfiles restore ./backup --dry-run    # preview only, no changes
 ```
 
-## Implementation Steps
+- `--pick` → checkbox UI: select which configs to restore
+- `--dry-run` → shows what would change, doesn't touch anything
+- Conflict handling: if target file differs, prompt overwrite / skip / show diff
+- Supports `.local` override pattern: if `backup/shell/.zshrc.local` exists, restore it alongside `.zshrc`
 
-### Step 1: Scaffold + meta collector
-- Create `src/collectors/types.ts`, `src/collectors/meta.ts`
-- Create `src/commands/collect.ts` (just meta for now)
-- Create `src/cli.ts` (command router)
-- Create `bin/dotfiles.ts` (shebang entry)
-- Update `package.json` — add `@dotformat/core` dep, `bin` entry, scripts
-- Verify: `bun bin/dotfiles.ts collect` → `.dotf` with `[meta]`
+---
 
-### Step 2: Redaction + SSH + npm collectors
-- Create `src/utils/redact.ts`
-- Create `src/collectors/ssh.ts`, `src/collectors/npm.ts`
-- Tests for redaction patterns
-- Verify: `[REDACTED]` appears by default, real values with `--no-redact`
+## Phase 7 — Sensitivity Scan
 
-### Step 3: AI tool collectors
-- `claude.ts`, `cursor.ts`, `gemini.ts`, `windsurf.ts`, `ollama.ts`
-- These produce the most sections and are highest value
+`dotfiles scan [path]` — also runs automatically during backup/collect.
 
-### Step 4: Remaining collectors
-- `shell.ts`, `git.ts`, `gh.ts`, `editors.ts`, `terminal.ts`
-- `bun-config.ts`, `apps.ts`, `homebrew.ts`
-- All simple file reads or `Bun.$` commands
+### Detection patterns
 
-### Step 5: Compare command
-- Wire `@dotformat/core` compare + formatDiff
-- Auto-pick 2 most recent `.dotf` files from `reports/`
+| Level | Pattern | Example |
+|---|---|---|
+| HIGH | Private key headers | `-----BEGIN.*PRIVATE KEY-----` |
+| HIGH | Auth tokens | `_authToken=`, `Bearer `, `sk-`, `ghp_`, `npm_` |
+| HIGH | AWS keys | `AKIA...`, `aws_secret_access_key` |
+| MEDIUM | IP addresses | `\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b` |
+| MEDIUM | Email addresses | `\b\w+@\w+\.\w+\b` |
+| LOW | Home directory paths | `/Users/<username>/`, `/home/<username>/` |
 
-### Step 6: List command
-- Fuzzy section matching ("models" → "ai.ollama.models")
-- Print section contents
+### Actions
 
-### Step 7: Cleanup
-- Deprecate bash script (add comment pointing to new CLI)
-- Update dotfiles README
+- `redact` → replace value with `[REDACTED]` (default for HIGH)
+- `skip` → exclude entire file from output (default for private keys)
+- `include` → keep as-is with warning (default for LOW)
+- `--no-redact` → bypass all, include everything
 
-## Testing Strategy
+---
 
-- **Redaction:** pattern matching, `--no-redact` bypass
-- **Collectors:** pass mock `ctx` with temp `home` dir, verify section shapes
-- **List:** fuzzy matching logic
-- Don't test: file I/O itself, `Bun.$` itself, `@dotformat/core` (already tested)
+## Phase 8 — Diff Against Live
 
-## Verification Checklist
+`dotfiles diff [--section ai]`
 
-1. `bun bin/dotfiles.ts collect` → produces `reports/<hostname>.dotf`
-2. Open the `.dotf` file — all sections present with correct data
-3. `bun bin/dotfiles.ts collect --no-redact` → SSH IPs visible
-4. `bun bin/dotfiles.ts compare` → colored diff between 2 reports
-5. `bun bin/dotfiles.ts list brew` → lists brew packages
-6. `bun test` passes
+Compares repo backup against current machine state. Answers: "what changed since last backup?"
 
-## Future
+```bash
+dotfiles diff
+# shell/.zshrc — modified (3 lines added)
+# ai/claude/settings.json — modified (2 plugins added)
+# editor/cursor/settings.json — unchanged
+# ai/windsurf/mcp_config.json — new file (not in backup)
+```
 
-- [ ] `--slim` flag for `collect` — extracts structured summaries instead of full content (hash + line count for md files, key prefs only for editor settings, extracted aliases/plugins for zshrc). Useful for AI token-efficient snapshots while default stays full content for backup/restore.
+- Uses `@dotformat/core` compare under the hood
+- Color-coded: green (unchanged), yellow (modified), red (deleted from machine), blue (new on machine)
+- `--section` flag for scoped diff
+
+---
+
+## Phase 9 — Init (GitHub template flow)
+
+`dotfiles init` → guided onboarding for new users.
+
+### New user (no repo)
+
+```bash
+bunx @dotformat/cli init
+  → "Create a private GitHub repo? (y/n)"
+  → gh repo create my-dotfiles --private --template dotformat/template
+  → cd my-dotfiles
+  → dotfiles backup
+  → git add . && git commit -m "initial backup"
+  → git push
+  → "Done. Your configs are backed up to github.com/you/my-dotfiles"
+```
+
+### New machine (has repo)
+
+```bash
+git clone github.com/you/my-dotfiles
+cd my-dotfiles
+dotfiles restore --pick
+  → [ ] shell/.zshrc
+  → [x] ai/claude/settings.json
+  → [x] ai/claude/CLAUDE.md
+  → [ ] git/.gitconfig
+  → "Restore 2 selected configs? (y/n)"
+```
+
+### One-line remote install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/you/my-dotfiles/main/install.sh | bash
+```
+
+### Rules
+
+- We never store user data — their GitHub is the storage
+- Zero cloud, zero accounts beyond what they already have
+- `gh` CLI required for repo creation (optional: manual git init fallback)
+
+---
+
+## Phase 10 — Config Registry
+
+Extensible manifest of what configs exist and where they live on each OS.
+
+```typescript
+// src/registry.ts
+const registry: ConfigEntry[] = [
+  {
+    id: "shell.zshrc",
+    name: ".zshrc",
+    paths: {
+      darwin: "~/.zshrc",
+      linux: "~/.zshrc",
+    },
+    category: "shell",
+    sensitivity: "low",
+  },
+  {
+    id: "editor.cursor",
+    name: "Cursor Settings",
+    paths: {
+      darwin: "~/Library/Application Support/Cursor/User/settings.json",
+      linux: "~/.config/Cursor/User/settings.json",
+      win32: "%APPDATA%/Cursor/User/settings.json",
+    },
+    category: "editor",
+    sensitivity: "low",
+  },
+  // Users can add custom entries...
+];
+```
+
+- Replaces hardcoded paths in collectors
+- Users extend via `dotfiles.config.ts` or `dotfiles add ~/.config/starship.toml`
+- Enables multi-OS support without rewriting collectors
+- Categories power `--only` / `--skip` filtering
+
+---
+
+## Phase 11 — Multi-OS
+
+- macOS: `~/Library/Application Support/...`
+- Linux: `~/.config/...`
+- Windows: `%APPDATA%/...`
+- Uses Config Registry (Phase 10) for path resolution
+- OS-specific collectors (e.g., `brew` only on macOS, `apt` on Linux, `winget` on Windows)
+
+---
+
+## Ideas Backlog
+
+- [ ] `--slim` flag for `collect` — AI token-efficient snapshots
+- [ ] `.local` override pattern — separate shared vs machine-specific configs (inspired by gko/dotfiles)
+- [ ] `--assume-unchanged` for sensitive template files in GitHub flow
+- [ ] Profile switching — `dotfiles use work` / `dotfiles use personal`
+- [ ] Encryption for sensitive files — encrypt with passphrase before storing, decrypt on restore
+- [ ] `dotfiles status` — quick summary of what's changed, what's backed up, what's new
+- [ ] Shallow clone + submodules for fast remote install
+- [ ] Plugin system — community collectors for tools we don't cover
+- [ ] Update README with Bun requirement and full CLI usage docs
+
+---
+
+## Priority Order
+
+| # | Phase | What | Depends on |
+|---|---|---|---|
+| 1 | ~~Phase 4~~ | CLI rewrite (collect, compare, list) | Done |
+| 2 | Phase 5 | Backup (structured file copy) | — |
+| 3 | Phase 7 | Sensitivity scan | Before backup ships |
+| 4 | Phase 6 | Restore (with --pick, --dry-run) | Backup |
+| 5 | Phase 8 | Diff against live system | Backup |
+| 6 | Phase 9 | Init (GitHub template) | Backup + Restore |
+| 7 | Phase 10 | Config registry | — |
+| 8 | Phase 11 | Multi-OS | Config registry |
