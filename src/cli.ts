@@ -3,6 +3,7 @@ import { backup } from "./commands/backup";
 import { scan } from "./commands/scan";
 import { restore } from "./commands/restore";
 import { diff } from "./commands/diff";
+import { status } from "./commands/status";
 import { compareCli } from "./commands/compare";
 import { list } from "./commands/list";
 
@@ -24,6 +25,9 @@ switch (command) {
   case "diff":
     await diff(args);
     break;
+  case "status":
+    await status();
+    break;
   case "compare":
     await compareCli(args);
     break;
@@ -39,6 +43,7 @@ Commands:
   scan    [path]                                     Scan files for sensitive data
   restore <path> [--pick] [--dry-run]                Restore config files from backup
   diff    [path] [--section <name>]                  Compare backup against live system
+  status                                             Quick summary of backup state
   compare [file1] [file2]                            Diff two .dotf reports
   list <section>                                     Print a section from most recent report`);
 }

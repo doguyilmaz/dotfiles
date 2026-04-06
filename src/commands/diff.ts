@@ -1,7 +1,5 @@
-import { join } from "path";
-import { readdir } from "fs/promises";
-import { resolveOutputDir } from "../utils/resolve-output";
 import { getHome } from "../utils/home";
+import { findLatestBackup } from "../utils/find-backup";
 import { buildRestorePlan } from "../restore/plan";
 import type { RestoreEntry, FileStatus } from "../restore/types";
 
@@ -15,23 +13,6 @@ function parseArgs(args: string[]) {
   }
 
   return { section, backupPath };
-}
-
-async function findLatestBackup(): Promise<string | null> {
-  const outputDir = await resolveOutputDir(null);
-  let entries: string[];
-  try {
-    entries = await readdir(outputDir);
-  } catch {
-    return null;
-  }
-
-  const backups = entries
-    .filter((e) => e.startsWith("backup-"))
-    .sort()
-    .reverse();
-
-  return backups.length > 0 ? join(outputDir, backups[0]) : null;
 }
 
 const isTTY = process.stdout.isTTY ?? false;
