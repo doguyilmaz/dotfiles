@@ -27,10 +27,11 @@ describe("registry entries", () => {
     }
   });
 
-  test("all paths use ~ prefix", () => {
+  test("all paths use ~ or %ENV_VAR% prefix", () => {
     for (const entry of registryEntries) {
       for (const path of Object.values(entry.paths)) {
-        expect(path).toStartWith("~");
+        const valid = path!.startsWith("~") || path!.startsWith("%");
+        expect(valid).toBe(true);
       }
     }
   });

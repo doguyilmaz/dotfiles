@@ -6,7 +6,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "ai.claude.settings",
     name: "Claude Settings",
-    paths: { darwin: "~/.claude/settings.json", linux: "~/.claude/settings.json" },
+    paths: { darwin: "~/.claude/settings.json", linux: "~/.claude/settings.json", win32: "%USERPROFILE%/.claude/settings.json" },
     category: "ai",
     kind: { type: "json-extract", fields: ["permissions", "enabledPlugins"] },
     backupDest: "ai/claude/settings.json",
@@ -15,7 +15,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "ai.claude.skills",
     name: "Claude Skills",
-    paths: { darwin: "~/.claude/skills", linux: "~/.claude/skills" },
+    paths: { darwin: "~/.claude/skills", linux: "~/.claude/skills", win32: "%USERPROFILE%/.claude/skills" },
     category: "ai",
     kind: { type: "dir" },
     backupDest: "ai/claude/skills",
@@ -24,7 +24,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "ai.claude.md",
     name: "CLAUDE.md",
-    paths: { darwin: "~/.claude/CLAUDE.md", linux: "~/.claude/CLAUDE.md" },
+    paths: { darwin: "~/.claude/CLAUDE.md", linux: "~/.claude/CLAUDE.md", win32: "%USERPROFILE%/.claude/CLAUDE.md" },
     category: "ai",
     kind: { type: "file" },
     backupDest: "ai/claude/CLAUDE.md",
@@ -35,7 +35,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "ai.cursor.mcp",
     name: "Cursor MCP Config",
-    paths: { darwin: "~/.cursor/mcp.json", linux: "~/.cursor/mcp.json" },
+    paths: { darwin: "~/.cursor/mcp.json", linux: "~/.cursor/mcp.json", win32: "%USERPROFILE%/.cursor/mcp.json" },
     category: "ai",
     kind: { type: "file" },
     backupDest: "ai/cursor/mcp.json",
@@ -44,7 +44,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "ai.cursor.skills",
     name: "Cursor Skills",
-    paths: { darwin: "~/.cursor/skills", linux: "~/.cursor/skills" },
+    paths: { darwin: "~/.cursor/skills", linux: "~/.cursor/skills", win32: "%USERPROFILE%/.cursor/skills" },
     category: "ai",
     kind: { type: "dir" },
     backupDest: "ai/cursor/skills",
@@ -55,7 +55,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "ai.gemini.settings",
     name: "Gemini Settings",
-    paths: { darwin: "~/.gemini/settings.json", linux: "~/.gemini/settings.json" },
+    paths: { darwin: "~/.gemini/settings.json", linux: "~/.gemini/settings.json", win32: "%USERPROFILE%/.gemini/settings.json" },
     category: "ai",
     kind: { type: "json-extract", fields: [] },
     backupDest: "ai/gemini/settings.json",
@@ -64,7 +64,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "ai.gemini.skills",
     name: "Gemini Skills",
-    paths: { darwin: "~/.gemini/skills", linux: "~/.gemini/skills" },
+    paths: { darwin: "~/.gemini/skills", linux: "~/.gemini/skills", win32: "%USERPROFILE%/.gemini/skills" },
     category: "ai",
     kind: { type: "dir" },
     backupDest: "ai/gemini/skills",
@@ -73,7 +73,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "ai.gemini.md",
     name: "GEMINI.md",
-    paths: { darwin: "~/.gemini/GEMINI.md", linux: "~/.gemini/GEMINI.md" },
+    paths: { darwin: "~/.gemini/GEMINI.md", linux: "~/.gemini/GEMINI.md", win32: "%USERPROFILE%/.gemini/GEMINI.md" },
     category: "ai",
     kind: { type: "file" },
     backupDest: "ai/gemini/GEMINI.md",
@@ -84,7 +84,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "ai.windsurf.mcp",
     name: "Windsurf MCP Config",
-    paths: { darwin: "~/.codeium/windsurf/mcp_config.json", linux: "~/.codeium/windsurf/mcp_config.json" },
+    paths: { darwin: "~/.codeium/windsurf/mcp_config.json", linux: "~/.codeium/windsurf/mcp_config.json", win32: "%USERPROFILE%/.codeium/windsurf/mcp_config.json" },
     category: "ai",
     kind: { type: "file" },
     backupDest: "ai/windsurf/mcp_config.json",
@@ -93,7 +93,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "ai.windsurf.skills",
     name: "Windsurf Skills",
-    paths: { darwin: "~/.codeium/windsurf/skills", linux: "~/.codeium/windsurf/skills" },
+    paths: { darwin: "~/.codeium/windsurf/skills", linux: "~/.codeium/windsurf/skills", win32: "%USERPROFILE%/.codeium/windsurf/skills" },
     category: "ai",
     kind: { type: "dir" },
     backupDest: "ai/windsurf/skills",
@@ -115,7 +115,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "git.config",
     name: ".gitconfig",
-    paths: { darwin: "~/.gitconfig", linux: "~/.gitconfig" },
+    paths: { darwin: "~/.gitconfig", linux: "~/.gitconfig", win32: "%USERPROFILE%/.gitconfig" },
     category: "git",
     kind: { type: "file" },
     backupDest: "git/.gitconfig",
@@ -124,7 +124,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "git.ignore",
     name: ".gitignore_global",
-    paths: { darwin: "~/.gitignore_global", linux: "~/.gitignore_global" },
+    paths: { darwin: "~/.gitignore_global", linux: "~/.gitignore_global", win32: "%USERPROFILE%/.gitignore_global" },
     category: "git",
     kind: { type: "file" },
     backupDest: "git/.gitignore_global",
@@ -133,7 +133,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "gh.config",
     name: "GitHub CLI Config",
-    paths: { darwin: "~/.config/gh/config.yml", linux: "~/.config/gh/config.yml" },
+    paths: { darwin: "~/.config/gh/config.yml", linux: "~/.config/gh/config.yml", win32: "%APPDATA%/GitHub CLI/config.yml" },
     category: "git",
     kind: { type: "file" },
     backupDest: "git/gh/config.yml",
@@ -144,7 +144,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "editor.zed",
     name: "Zed Settings",
-    paths: { darwin: "~/.config/zed/settings.json", linux: "~/.config/zed/settings.json" },
+    paths: { darwin: "~/.config/zed/settings.json", linux: "~/.config/zed/settings.json", win32: "%APPDATA%/Zed/settings.json" },
     category: "editor",
     kind: { type: "file" },
     backupDest: "editor/zed/settings.json",
@@ -156,6 +156,7 @@ export const registryEntries: ConfigEntry[] = [
     paths: {
       darwin: "~/Library/Application Support/Cursor/User/settings.json",
       linux: "~/.config/Cursor/User/settings.json",
+      win32: "%APPDATA%/Cursor/User/settings.json",
     },
     category: "editor",
     kind: { type: "file" },
@@ -165,7 +166,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "editor.nvim",
     name: "Neovim Config",
-    paths: { darwin: "~/.config/nvim/init.lua", linux: "~/.config/nvim/init.lua" },
+    paths: { darwin: "~/.config/nvim/init.lua", linux: "~/.config/nvim/init.lua", win32: "%USERPROFILE%/AppData/Local/nvim/init.lua" },
     category: "editor",
     kind: { type: "file" },
     backupDest: "editor/nvim/init.lua",
@@ -174,7 +175,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "editor.vimrc",
     name: ".vimrc",
-    paths: { darwin: "~/.vimrc", linux: "~/.vimrc" },
+    paths: { darwin: "~/.vimrc", linux: "~/.vimrc", win32: "%USERPROFILE%/_vimrc" },
     category: "editor",
     kind: { type: "file" },
     backupDest: "editor/.vimrc",
@@ -205,7 +206,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "ssh.config",
     name: "SSH Config",
-    paths: { darwin: "~/.ssh/config", linux: "~/.ssh/config" },
+    paths: { darwin: "~/.ssh/config", linux: "~/.ssh/config", win32: "%USERPROFILE%/.ssh/config" },
     category: "ssh",
     kind: { type: "file" },
     backupDest: "ssh/config",
@@ -217,7 +218,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "npm.config",
     name: ".npmrc",
-    paths: { darwin: "~/.npmrc", linux: "~/.npmrc" },
+    paths: { darwin: "~/.npmrc", linux: "~/.npmrc", win32: "%USERPROFILE%/.npmrc" },
     category: "npm",
     kind: { type: "file" },
     backupDest: "npm/.npmrc",
@@ -229,7 +230,7 @@ export const registryEntries: ConfigEntry[] = [
   {
     id: "bun.config",
     name: ".bunfig.toml",
-    paths: { darwin: "~/.bunfig.toml", linux: "~/.bunfig.toml" },
+    paths: { darwin: "~/.bunfig.toml", linux: "~/.bunfig.toml", win32: "%USERPROFILE%/.bunfig.toml" },
     category: "bun",
     kind: { type: "file" },
     backupDest: "bun/.bunfig.toml",

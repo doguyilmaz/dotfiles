@@ -319,13 +319,15 @@ const registry: ConfigEntry[] = [
 
 ---
 
-## 7. Multi-OS
+## 7. Multi-OS (Done)
 
 - macOS: `~/Library/Application Support/...`
 - Linux: `~/.config/...`
-- Windows: `%APPDATA%/...`
-- Uses Config Registry for path resolution
-- OS-specific collectors (e.g., `brew` only on macOS, `apt` on Linux, `winget` on Windows)
+- Windows: `%APPDATA%/...`, `%USERPROFILE%/...`
+- Registry entries have per-platform paths (`darwin`, `linux`, `win32`)
+- `resolvePath()` handles `~`, `%APPDATA%`, `%USERPROFILE%` expansion
+- OS-specific collectors have platform guards (`brew` only on macOS)
+- Shell configs (zshrc, p10k, tmux) excluded on Windows (no path = auto-skip)
 
 ---
 
@@ -405,5 +407,5 @@ curl -fsSL https://raw.githubusercontent.com/you/my-dotfiles/main/install.sh | b
 | 4 | Restore (with --pick, --dry-run, pre-restore snapshot) | Done |
 | 5 | Diff against live system | Done |
 | 6 | Config registry | Done |
-| 7 | Multi-OS | Next |
+| 7 | Multi-OS | Done |
 | 8 | Init (GitHub template) | Planned |

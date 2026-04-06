@@ -2,6 +2,8 @@ import type { Collector } from "./types";
 import { makeSection } from "./types";
 
 export const collectApps: Collector = async () => {
+  if (process.platform !== "darwin") return {};
+
   const result: Record<string, ReturnType<typeof makeSection>> = {};
 
   const raycastInstalled = await Bun.file("/Applications/Raycast.app/Contents/Info.plist").exists();
