@@ -201,3 +201,7 @@ const item: DotfItem = {
 4. `bun bin/dotfiles.ts compare` → colored diff between 2 reports
 5. `bun bin/dotfiles.ts list brew` → lists brew packages
 6. `bun test` passes
+
+## Future
+
+- [ ] `--slim` flag for `collect` — extracts structured summaries instead of full content (hash + line count for md files, key prefs only for editor settings, extracted aliases/plugins for zshrc). Useful for AI token-efficient snapshots while default stays full content for backup/restore.
