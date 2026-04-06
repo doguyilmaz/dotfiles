@@ -1,8 +1,13 @@
 import { hostname } from "os";
 import { join } from "path";
+import { generateTimestamp } from "../utils/timestamp";
 import { stringify } from "@dotformat/core";
 import type { DotfDocument } from "@dotformat/core";
 import type { CollectorContext, CollectorResult } from "../collectors/types";
+import { resolveOutputDir } from "../utils/resolve-output";
+import { getHome } from "../utils/home";
+import { scanContent, summarize, formatReport, applyRedactions } from "../scan";
+import type { ScanResult } from "../scan";
 import { collectMeta } from "../collectors/meta";
 import { collectClaude } from "../collectors/claude";
 import { collectCursor } from "../collectors/cursor";
@@ -51,18 +56,6 @@ function parseArgs(args: string[]) {
   return { redact, outputDir };
 }
 
-async function resolveOutputDir(explicit: string | null): Promise<string> {
-  if (explicit) return explicit;
-
-  const cwd = process.cwd();
-  const isRepo = await Bun.file(join(cwd, ".git/HEAD")).exists();
-
-  if (isRepo) return join(cwd, "reports");
-
-  const home = Bun.env.HOME ?? "/tmp";
-  return join(home, "Downloads");
-}
-
 export async function collect(args: string[]) {
   const { redact, outputDir } = parseArgs(args);
   const resolvedOutput = await resolveOutputDir(outputDir);
@@ -71,7 +64,7 @@ export async function collect(args: string[]) {
 
   const ctx: CollectorContext = {
     redact,
-    home: Bun.env.HOME ?? "/tmp",
+    home: getHome(),
   };
 
   const sections: CollectorResult = {};
@@ -81,12 +74,34 @@ export async function collect(args: string[]) {
     Object.assign(sections, result);
   }
 
+  const scanResults: ScanResult[] = [];
+  if (redact) {
+    for (const [name, section] of Object.entries(sections)) {
+      if (section.content) {
+        const result = scanContent(name, section.content);
+        scanResults.push(result);
+        if (result.action === "skip") {
+          delete sections[name];
+        } else if (result.action === "redact") {
+          section.content = applyRedactions(section.content, result);
+        }
+      }
+    }
+  }
+
   const doc: DotfDocument = { sections };
   const output = stringify(doc);
 
-  const filename = `${hostname()}.dotf`;
+  const ts = generateTimestamp();
+  const filename = `${hostname()}-${ts}.dotf`;
   const filepath = join(resolvedOutput, filename);
   await Bun.write(filepath, output);
 
   console.log(`Report saved to: ${filepath}`);
+
+  if (redact) {
+    const summary = summarize(scanResults);
+    const report = formatReport(summary);
+    if (report) console.log(report);
+  }
 }
