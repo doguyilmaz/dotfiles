@@ -1,10 +1,12 @@
 import { hostname } from "os";
 import { join } from "path";
+import { generateTimestamp } from "../utils/timestamp";
 import { stringify } from "@dotformat/core";
 import type { DotfDocument } from "@dotformat/core";
 import type { CollectorContext, CollectorResult } from "../collectors/types";
 import { resolveOutputDir } from "../utils/resolve-output";
-import { scanContent, summarize, formatReport } from "../scan";
+import { getHome } from "../utils/home";
+import { scanContent, summarize, formatReport, applyRedactions } from "../scan";
 import type { ScanResult } from "../scan";
 import { collectMeta } from "../collectors/meta";
 import { collectClaude } from "../collectors/claude";
@@ -62,7 +64,7 @@ export async function collect(args: string[]) {
 
   const ctx: CollectorContext = {
     redact,
-    home: Bun.env.HOME ?? "/tmp",
+    home: getHome(),
   };
 
   const sections: CollectorResult = {};
@@ -80,6 +82,8 @@ export async function collect(args: string[]) {
         scanResults.push(result);
         if (result.action === "skip") {
           delete sections[name];
+        } else if (result.action === "redact") {
+          section.content = applyRedactions(section.content, result);
         }
       }
     }
@@ -88,8 +92,7 @@ export async function collect(args: string[]) {
   const doc: DotfDocument = { sections };
   const output = stringify(doc);
 
-  const now = new Date();
-  const ts = now.toISOString().replace(/[-:T]/g, "").slice(0, 14);
+  const ts = generateTimestamp();
   const filename = `${hostname()}-${ts}.dotf`;
   const filepath = join(resolvedOutput, filename);
   await Bun.write(filepath, output);

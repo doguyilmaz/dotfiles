@@ -1,12 +1,14 @@
 import { hostname } from 'os';
 import { join, dirname } from 'path';
 import { resolveOutputDir } from '../utils/resolve-output';
+import { getHome } from '../utils/home';
+import { generateTimestamp } from '../utils/timestamp';
 import { backupSources } from '../backup/sources';
 import { scanContent, summarize, formatReport, applyRedactions } from '../scan';
 import type { ScanResult } from '../scan';
 import type { BackupEntry, BackupSource } from '../backup/types';
 
-function parseBackupArgs(args: string[]) {
+function parseArgs(args: string[]) {
   let redact = true;
   let outputDir: string | null = null;
   let only: string[] = [];
@@ -62,7 +64,7 @@ async function copyDir(entry: BackupEntry & { type: 'dir' }, destRoot: string): 
   let count = 0;
 
   try {
-    for await (const relative of glob.scan({ cwd: entry.src, onlyFiles: true })) {
+    for await (const relative of glob.scan({ cwd: entry.src, onlyFiles: true, dot: true })) {
       const srcPath = join(entry.src, relative);
       const destPath = join(destRoot, entry.dest, relative);
       await Bun.$`mkdir -p ${dirname(destPath)}`.quiet();
@@ -70,17 +72,18 @@ async function copyDir(entry: BackupEntry & { type: 'dir' }, destRoot: string): 
       await Bun.write(destPath, content);
       count++;
     }
-  } catch {}
+  } catch {
+    // Directory doesn't exist or is unreadable — skip silently (tool may not be installed)
+  }
 
   return count;
 }
 
 export async function backup(args: string[]) {
-  const { redact, outputDir, only, skip } = parseBackupArgs(args);
+  const { redact, outputDir, only, skip } = parseArgs(args);
   const resolvedOutput = await resolveOutputDir(outputDir);
 
-  const now = new Date();
-  const ts = now.toISOString().replace(/[-:T]/g, '').slice(0, 14);
+  const ts = generateTimestamp();
   const backupDir = join(resolvedOutput, `backup-${hostname()}-${ts}`);
 
   const sources = filterSources(backupSources, only, skip);
@@ -89,7 +92,7 @@ export async function backup(args: string[]) {
   const scanResults: ScanResult[] = [];
 
   for (const source of sources) {
-    const entries = source.entries(Bun.env.HOME ?? '/tmp');
+    const entries = source.entries(getHome());
     let categoryCount = 0;
 
     for (const entry of entries) {

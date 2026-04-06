@@ -28,7 +28,7 @@ async function scanDirectory(dirPath: string): Promise<ScanResult[]> {
   const results: ScanResult[] = [];
   const glob = new Bun.Glob("**/*");
 
-  for await (const relative of glob.scan({ cwd: dirPath, onlyFiles: true })) {
+  for await (const relative of glob.scan({ cwd: dirPath, onlyFiles: true, dot: true })) {
     if (relative.includes("node_modules/")) continue;
     if (relative.includes(".git/")) continue;
 

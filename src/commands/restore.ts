@@ -1,7 +1,8 @@
 import { resolve } from "path";
+import { getHome } from "../utils/home";
 import { buildRestorePlan, executeRestore, pickCategories } from "../restore";
 
-function parseRestoreArgs(args: string[]) {
+function parseArgs(args: string[]) {
   let pick = false;
   let dryRun = false;
   let backupPath: string | null = null;
@@ -16,7 +17,7 @@ function parseRestoreArgs(args: string[]) {
 }
 
 export async function restore(args: string[]) {
-  const { pick, dryRun, backupPath } = parseRestoreArgs(args);
+  const { pick, dryRun, backupPath } = parseArgs(args);
 
   if (!backupPath) {
     console.log("Usage: dotfiles restore <backup-path> [--pick] [--dry-run]");
@@ -24,7 +25,7 @@ export async function restore(args: string[]) {
   }
 
   const resolvedPath = resolve(backupPath);
-  const home = Bun.env.HOME ?? "/tmp";
+  const home = getHome();
 
   let plan = await buildRestorePlan(resolvedPath, home);
 

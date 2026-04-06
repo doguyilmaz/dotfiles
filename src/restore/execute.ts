@@ -1,26 +1,19 @@
 import { join, dirname } from "path";
 import { resolveOutputDir } from "../utils/resolve-output";
-import type { RestorePlan } from "./types";
+import { generateTimestamp } from "../utils/timestamp";
+import type { RestorePlan, FileStatus } from "./types";
 import { promptConflict } from "./prompt";
 
 interface ExecuteOptions {
   dryRun: boolean;
 }
 
-function statusLabel(status: string): string {
-  switch (status) {
-    case "new":
-      return "[NEW]";
-    case "conflict":
-      return "[CONFLICT]";
-    case "same":
-      return "[SAME]";
-    case "redacted":
-      return "[REDACTED]";
-    default:
-      return "[UNKNOWN]";
-  }
-}
+const STATUS_LABELS: Record<FileStatus, string> = {
+  new: "[NEW]",
+  conflict: "[CONFLICT]",
+  same: "[SAME]",
+  redacted: "[REDACTED]",
+};
 
 function printPlan(plan: RestorePlan) {
   const newCount = plan.entries.filter((e) => e.status === "new").length;
@@ -29,7 +22,7 @@ function printPlan(plan: RestorePlan) {
   const redactedCount = plan.entries.filter((e) => e.status === "redacted").length;
 
   for (const entry of plan.entries) {
-    const label = statusLabel(entry.status).padEnd(12);
+    const label = STATUS_LABELS[entry.status].padEnd(12);
     console.log(`  ${label} ${entry.backupPath} → ${entry.targetPath}`);
   }
 
@@ -47,8 +40,7 @@ export async function createSnapshot(plan: RestorePlan): Promise<string | null> 
   if (conflicts.length === 0) return null;
 
   const resolvedOutput = await resolveOutputDir(null);
-  const now = new Date();
-  const ts = now.toISOString().replace(/[-:T]/g, "").slice(0, 14);
+  const ts = generateTimestamp();
   const snapshotDir = join(resolvedOutput, `pre-restore-${ts}`);
 
   for (const entry of conflicts) {
