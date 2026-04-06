@@ -8,6 +8,7 @@
   },
   "scripts": {
     "collect": "bun bin/dotfiles.ts collect",
+    "backup": "bun bin/dotfiles.ts backup",
     "compare": "bun bin/dotfiles.ts compare",
     "test": "bun test"
   },

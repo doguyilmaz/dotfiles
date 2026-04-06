@@ -1,0 +1,103 @@
+import { hostname } from 'os';
+import { join, dirname } from 'path';
+import { resolveOutputDir } from '../utils/resolve-output';
+import { backupSources } from '../backup/sources';
+import type { BackupEntry, BackupSource } from '../backup/types';
+
+function parseBackupArgs(args: string[]) {
+  let redact = true;
+  let outputDir: string | null = null;
+  let only: string[] = [];
+  let skip: string[] = [];
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--no-redact') redact = false;
+    if (args[i] === '-o' && args[i + 1]) outputDir = args[++i];
+    if (args[i] === '--only' && args[i + 1]) only = args[++i].split(',');
+    if (args[i] === '--skip' && args[i + 1]) skip = args[++i].split(',');
+  }
+
+  return { redact, outputDir, only, skip };
+}
+
+function filterSources(sources: BackupSource[], only: string[], skip: string[]): BackupSource[] {
+  let filtered = sources;
+  if (only.length) filtered = filtered.filter((s) => only.includes(s.category));
+  if (skip.length) filtered = filtered.filter((s) => !skip.includes(s.category));
+  return filtered;
+}
+
+async function copyFile(
+  entry: BackupEntry & { type: 'file' },
+  destRoot: string,
+  redact: boolean,
+): Promise<boolean> {
+  const file = Bun.file(entry.src);
+  if (!(await file.exists())) return false;
+
+  let content = await file.text();
+  if (redact && entry.redact) content = entry.redact(content);
+
+  const destPath = join(destRoot, entry.dest);
+  await Bun.$`mkdir -p ${dirname(destPath)}`.quiet();
+  await Bun.write(destPath, content);
+  return true;
+}
+
+async function copyDir(entry: BackupEntry & { type: 'dir' }, destRoot: string): Promise<number> {
+  const glob = new Bun.Glob('**/*');
+  let count = 0;
+
+  try {
+    for await (const relative of glob.scan({ cwd: entry.src, onlyFiles: true })) {
+      const srcPath = join(entry.src, relative);
+      const destPath = join(destRoot, entry.dest, relative);
+      await Bun.$`mkdir -p ${dirname(destPath)}`.quiet();
+      const content = await Bun.file(srcPath).text();
+      await Bun.write(destPath, content);
+      count++;
+    }
+  } catch {}
+
+  return count;
+}
+
+export async function backup(args: string[]) {
+  const { redact, outputDir, only, skip } = parseBackupArgs(args);
+  const resolvedOutput = await resolveOutputDir(outputDir);
+
+  const now = new Date();
+  const ts = now.toISOString().replace(/[-:T]/g, '').slice(0, 14);
+  const backupDir = join(resolvedOutput, `backup-${hostname()}-${ts}`);
+
+  const sources = filterSources(backupSources, only, skip);
+  let totalFiles = 0;
+  const backedUpCategories: string[] = [];
+
+  for (const source of sources) {
+    const entries = source.entries(Bun.env.HOME ?? '/tmp');
+    let categoryCount = 0;
+
+    for (const entry of entries) {
+      if (entry.type === 'file') {
+        const copied = await copyFile(entry, backupDir, redact);
+        if (copied) categoryCount++;
+      } else {
+        categoryCount += await copyDir(entry, backupDir);
+      }
+    }
+
+    if (categoryCount > 0) {
+      backedUpCategories.push(`${source.category} (${categoryCount})`);
+      totalFiles += categoryCount;
+    }
+  }
+
+  if (totalFiles === 0) {
+    console.log('No files found to backup.');
+    return;
+  }
+
+  console.log(`Backup saved to: ${backupDir}`);
+  console.log(`  ${totalFiles} files across: ${backedUpCategories.join(', ')}`);
+}
