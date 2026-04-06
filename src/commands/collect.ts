@@ -84,7 +84,9 @@ export async function collect(args: string[]) {
   const doc: DotfDocument = { sections };
   const output = stringify(doc);
 
-  const filename = `${hostname()}.dotf`;
+  const now = new Date();
+  const ts = now.toISOString().replace(/[-:T]/g, "").slice(0, 14);
+  const filename = `${hostname()}-${ts}.dotf`;
   const filepath = join(resolvedOutput, filename);
   await Bun.write(filepath, output);
 

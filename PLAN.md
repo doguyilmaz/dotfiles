@@ -383,6 +383,7 @@ const registry: ConfigEntry[] = [
 
 ## Ideas Backlog
 
+- [x] Timestamped report filenames — `<hostname>-YYYYMMDDHHMMSS.dotf`, no overwrites
 - [ ] `--slim` flag for `collect` — AI token-efficient snapshots
 - [ ] `.local` override pattern — separate shared vs machine-specific configs (inspired by gko/dotfiles)
 - [ ] `--assume-unchanged` for sensitive template files in GitHub flow
