@@ -397,6 +397,10 @@ const registry: ConfigEntry[] = [
 - [ ] Stream-based file copy — `Bun.file().stream()` for memory-safe large backup operations
 - [ ] Archive output — `Bun.Archiver` for `.tar.gz` backup export, `Bun.TarReader` for reading. Single portable file, corruption-resistant
 - [ ] Binary format — optional `--format binary` for `.dotf` files. Smaller size + not human-readable. Text stays default, binary is opt-in. Compare both formats for size difference
+- [ ] Pluggable output format — `--format json|yaml|toml|dotf` via registry layer. `.dotf` default, others opt-in
+- [ ] `bun build --compile` — standalone binary distribution (no Bun install required)
+- [ ] License — change to MIT when going public
+- [ ] Parallel collectors — `Promise.allSettled` for independent collectors (brew, ollama, file reads)
 
 ---
 

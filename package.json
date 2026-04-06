@@ -1,7 +1,7 @@
 {
   "name": "@dotformat/cli",
   "version": "0.2.0",
-  "description": "Collect, compare, and sync machine configs across machines",
+  "description": "Collect, backup, restore, scan, and diff machine configs across machines",
   "type": "module",
   "bin": {
     "dotfiles": "./bin/dotfiles.ts"
@@ -27,6 +27,9 @@
     "machine-state",
     "sync"
   ],
+  "engines": {
+    "bun": ">=1.0.0"
+  },
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
