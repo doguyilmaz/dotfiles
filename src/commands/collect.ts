@@ -26,18 +26,32 @@ const collectors = [
 
 function parseArgs(args: string[]) {
   let redact = true;
+  let slim = false;
   let outputDir: string | null = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--no-redact") redact = false;
+    if (args[i] === "--slim") slim = true;
     if (args[i] === "-o" && args[i + 1]) outputDir = args[++i];
   }
 
-  return { redact, outputDir };
+  return { redact, slim, outputDir };
+}
+
+const SLIM_MAX_LINES = 10;
+
+function slimSections(sections: CollectorResult) {
+  for (const section of Object.values(sections)) {
+    if (!section.content) continue;
+    const lines = section.content.split("\n");
+    if (lines.length > SLIM_MAX_LINES) {
+      section.content = lines.slice(0, SLIM_MAX_LINES).join("\n") + `\n... (${lines.length - SLIM_MAX_LINES} more lines)`;
+    }
+  }
 }
 
 export async function collect(args: string[]) {
-  const { redact, outputDir } = parseArgs(args);
+  const { redact, slim, outputDir } = parseArgs(args);
   const resolvedOutput = await resolveOutputDir(outputDir);
 
   await Bun.$`mkdir -p ${resolvedOutput}`.quiet();
@@ -68,6 +82,8 @@ export async function collect(args: string[]) {
       }
     }
   }
+
+  if (slim) slimSections(sections);
 
   const doc: DotfDocument = { sections };
   const output = stringify(doc);

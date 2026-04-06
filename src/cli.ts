@@ -38,7 +38,7 @@ switch (command) {
     console.log(`Usage: dotfiles <command>
 
 Commands:
-  collect [--no-redact] [-o path]                    Collect machine config → .dotf report
+  collect [--no-redact] [--slim] [-o path]            Collect machine config → .dotf report
   backup  [--no-redact] [-o path] [--only] [--skip]  Backup config files → structured directory
   scan    [path]                                     Scan files for sensitive data
   restore <path> [--pick] [--dry-run]                Restore config files from backup
