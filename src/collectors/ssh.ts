@@ -1,4 +1,5 @@
 import { join } from "path";
+import { REDACTION_MARKER } from "../utils/constants";
 import type { Collector, CollectorResult } from "./types";
 import { makeSection } from "./types";
 
@@ -48,8 +49,8 @@ export const collectSsh: Collector = async (ctx) => {
   if (!hosts.length) return {} as CollectorResult;
 
   const items = hosts.map((h) => {
-    const hn = ctx.redact ? "[REDACTED]" : h.hostname;
-    const id = ctx.redact ? "[REDACTED]" : h.identityFile;
+    const hn = ctx.redact ? REDACTION_MARKER : h.hostname;
+    const id = ctx.redact ? REDACTION_MARKER : h.identityFile;
     const raw = `${h.host} | ${hn} | ${id}`;
     return { raw, columns: [h.host, hn, id] };
   });

@@ -1,4 +1,5 @@
 import { join } from "path";
+import { getHome } from "./home";
 
 export async function resolveOutputDir(explicit: string | null): Promise<string> {
   if (explicit) return explicit;
@@ -8,6 +9,5 @@ export async function resolveOutputDir(explicit: string | null): Promise<string>
 
   if (isRepo) return join(cwd, "reports");
 
-  const home = Bun.env.HOME ?? "/tmp";
-  return join(home, "Downloads");
+  return join(getHome(), "Downloads");
 }

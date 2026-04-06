@@ -9,7 +9,11 @@ function getUsername(): string {
   }
 }
 
+let cachedPatterns: ScanPattern[] | null = null;
+
 export function getScanPatterns(): ScanPattern[] {
+  if (cachedPatterns) return cachedPatterns;
+
   const username = getUsername();
 
   const patterns: ScanPattern[] = [
@@ -240,5 +244,6 @@ export function getScanPatterns(): ScanPattern[] {
     });
   }
 
+  cachedPatterns = patterns;
   return patterns;
 }

@@ -1,20 +1,22 @@
+import { REDACTION_MARKER } from "./constants";
+
 const IP_PATTERN = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
 const AUTH_TOKEN_PATTERN = /(_authToken=).+/g;
 const SSH_HOSTNAME_PATTERN = /(HostName\s+).+/g;
 const SSH_IDENTITY_PATTERN = /(IdentityFile\s+).+/g;
 
 export function redactIPs(text: string): string {
-  return text.replace(IP_PATTERN, "[REDACTED]");
+  return text.replace(IP_PATTERN, REDACTION_MARKER);
 }
 
 export function redactNpmTokens(text: string): string {
-  return text.replace(AUTH_TOKEN_PATTERN, "$1[REDACTED]");
+  return text.replace(AUTH_TOKEN_PATTERN, `$1${REDACTION_MARKER}`);
 }
 
 export function redactSshConfig(text: string): string {
   return text
-    .replace(SSH_HOSTNAME_PATTERN, "$1[REDACTED]")
-    .replace(SSH_IDENTITY_PATTERN, "$1[REDACTED]");
+    .replace(SSH_HOSTNAME_PATTERN, `$1${REDACTION_MARKER}`)
+    .replace(SSH_IDENTITY_PATTERN, `$1${REDACTION_MARKER}`);
 }
 
 export function redactAll(text: string): string {

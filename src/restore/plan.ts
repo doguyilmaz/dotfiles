@@ -1,5 +1,6 @@
 import { join } from "path";
 import { backupSources } from "../backup/sources";
+import { REDACTION_MARKER } from "../utils/constants";
 import type { RestoreEntry, RestorePlan, FileStatus } from "./types";
 
 interface RestoreMapping {
@@ -25,7 +26,7 @@ export function buildRestoreMap(home: string): Map<string, RestoreMapping> {
 }
 
 async function resolveFileStatus(backupContent: string, targetPath: string): Promise<FileStatus> {
-  if (backupContent.includes("[REDACTED]")) return "redacted";
+  if (backupContent.includes(REDACTION_MARKER)) return "redacted";
 
   const targetFile = Bun.file(targetPath);
   if (!(await targetFile.exists())) return "new";

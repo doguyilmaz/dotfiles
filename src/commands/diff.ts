@@ -1,10 +1,11 @@
 import { join } from "path";
 import { readdir } from "fs/promises";
 import { resolveOutputDir } from "../utils/resolve-output";
+import { getHome } from "../utils/home";
 import { buildRestorePlan } from "../restore/plan";
 import type { RestoreEntry, FileStatus } from "../restore/types";
 
-function parseDiffArgs(args: string[]) {
+function parseArgs(args: string[]) {
   let section: string | null = null;
   let backupPath: string | null = null;
 
@@ -33,13 +34,15 @@ async function findLatestBackup(): Promise<string | null> {
   return backups.length > 0 ? join(outputDir, backups[0]) : null;
 }
 
+const isTTY = process.stdout.isTTY ?? false;
+
 const STATUS_COLORS: Record<FileStatus, string> = {
-  conflict: "\x1b[33m",
-  new: "\x1b[34m",
-  same: "\x1b[32m",
-  redacted: "\x1b[90m",
+  conflict: isTTY ? "\x1b[33m" : "",
+  new: isTTY ? "\x1b[34m" : "",
+  same: isTTY ? "\x1b[32m" : "",
+  redacted: isTTY ? "\x1b[90m" : "",
 };
-const RESET = "\x1b[0m";
+const RESET = isTTY ? "\x1b[0m" : "";
 
 const STATUS_LABELS: Record<FileStatus, string> = {
   conflict: "modified",
@@ -55,8 +58,8 @@ function printDiffEntry(entry: RestoreEntry) {
 }
 
 export async function diff(args: string[]) {
-  const { section, backupPath } = parseDiffArgs(args);
-  const home = Bun.env.HOME ?? "/tmp";
+  const { section, backupPath } = parseArgs(args);
+  const home = getHome();
 
   const resolvedBackup = backupPath ?? (await findLatestBackup());
   if (!resolvedBackup) {
@@ -102,10 +105,10 @@ export async function diff(args: string[]) {
   const redacted = entries.filter((e) => e.status === "redacted").length;
 
   const parts: string[] = [];
-  if (modified > 0) parts.push(`\x1b[33m${modified} modified${RESET}`);
-  if (unchanged > 0) parts.push(`\x1b[32m${unchanged} unchanged${RESET}`);
-  if (newFiles > 0) parts.push(`\x1b[34m${newFiles} new${RESET}`);
-  if (redacted > 0) parts.push(`\x1b[90m${redacted} redacted${RESET}`);
+  if (modified > 0) parts.push(`${STATUS_COLORS.conflict}${modified} modified${RESET}`);
+  if (unchanged > 0) parts.push(`${STATUS_COLORS.same}${unchanged} unchanged${RESET}`);
+  if (newFiles > 0) parts.push(`${STATUS_COLORS.new}${newFiles} new${RESET}`);
+  if (redacted > 0) parts.push(`${STATUS_COLORS.redacted}${redacted} redacted${RESET}`);
 
   console.log(`\n  ${entries.length} files: ${parts.join(", ")}`);
 }
