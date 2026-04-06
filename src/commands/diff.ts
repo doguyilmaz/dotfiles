@@ -17,11 +17,16 @@ function parseArgs(args: string[]) {
 
 const isTTY = process.stdout.isTTY ?? false;
 
+function color(name: string): string {
+  if (!isTTY) return "";
+  return Bun.color(name, "ansi-256") ?? "";
+}
+
 const STATUS_COLORS: Record<FileStatus, string> = {
-  conflict: isTTY ? "\x1b[33m" : "",
-  new: isTTY ? "\x1b[34m" : "",
-  same: isTTY ? "\x1b[32m" : "",
-  redacted: isTTY ? "\x1b[90m" : "",
+  conflict: color("yellow"),
+  new: color("blue"),
+  same: color("green"),
+  redacted: color("gray"),
 };
 const RESET = isTTY ? "\x1b[0m" : "";
 
