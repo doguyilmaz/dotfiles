@@ -1,5 +1,6 @@
 import { join, dirname } from "path";
-import type { RestorePlan, RestoreEntry } from "./types";
+import { resolveOutputDir } from "../utils/resolve-output";
+import type { RestorePlan } from "./types";
 import { promptConflict } from "./prompt";
 
 interface ExecuteOptions {
@@ -41,11 +42,38 @@ function printPlan(plan: RestorePlan) {
   console.log(`\n  ${plan.entries.length} files total: ${parts.join(", ")}`);
 }
 
+export async function createSnapshot(plan: RestorePlan): Promise<string | null> {
+  const conflicts = plan.entries.filter((e) => e.status === "conflict");
+  if (conflicts.length === 0) return null;
+
+  const resolvedOutput = await resolveOutputDir(null);
+  const now = new Date();
+  const ts = now.toISOString().replace(/[-:T]/g, "").slice(0, 14);
+  const snapshotDir = join(resolvedOutput, `pre-restore-${ts}`);
+
+  for (const entry of conflicts) {
+    const file = Bun.file(entry.targetPath);
+    if (!(await file.exists())) continue;
+
+    const content = await file.text();
+    const destPath = join(snapshotDir, entry.backupPath);
+    await Bun.$`mkdir -p ${dirname(destPath)}`.quiet();
+    await Bun.write(destPath, content);
+  }
+
+  return snapshotDir;
+}
+
 export async function executeRestore(plan: RestorePlan, options: ExecuteOptions) {
   if (options.dryRun) {
     console.log("\nDry run — no files will be changed:\n");
     printPlan(plan);
     return;
+  }
+
+  const snapshotDir = await createSnapshot(plan);
+  if (snapshotDir) {
+    console.log(`\nPre-restore snapshot saved to: ${snapshotDir}`);
   }
 
   let overwriteAll = false;
