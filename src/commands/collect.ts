@@ -61,11 +61,13 @@ export async function collect(args: string[]) {
     home: getHome(),
   };
 
-  const sections: CollectorResult = {};
+  const results = await Promise.allSettled(collectors.map((c) => c(ctx)));
 
-  for (const collector of collectors) {
-    const result = await collector(ctx);
-    Object.assign(sections, result);
+  const sections: CollectorResult = {};
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      Object.assign(sections, result.value);
+    }
   }
 
   const scanResults: ScanResult[] = [];
