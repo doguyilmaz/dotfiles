@@ -2,6 +2,8 @@ import type { Collector } from "./types";
 import { makeSection } from "./types";
 
 export const collectHomebrew: Collector = async () => {
+  if (process.platform !== "darwin") return {};
+
   const result: Record<string, ReturnType<typeof makeSection>> = {};
 
   try {
