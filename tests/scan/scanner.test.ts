@@ -1,5 +1,7 @@
 import { test, expect, describe } from "bun:test";
-import { scanContent, summarize } from "../../src/scan/scanner";
+import { join } from "path";
+import { tmpdir } from "os";
+import { scanContent, scanFile, summarize } from "../../src/scan/scanner";
 import { applyRedactions } from "../../src/scan/redactor";
 
 describe("scanContent", () => {
@@ -214,5 +216,22 @@ describe("applyRedactions", () => {
     const redacted = applyRedactions(content, result);
     expect(redacted).toContain("[REDACTED]");
     expect(redacted).not.toContain("10.0.0.50");
+  });
+});
+
+describe("scanFile", () => {
+  test("scans an existing file", async () => {
+    const tempFile = join(tmpdir(), "scan-test-file.txt");
+    await Bun.write(tempFile, "_authToken=secret123");
+    const result = await scanFile(tempFile);
+    expect(result).not.toBeNull();
+    expect(result!.action).toBe("redact");
+    expect(result!.findings.length).toBeGreaterThan(0);
+    await Bun.$`rm ${tempFile}`.quiet();
+  });
+
+  test("returns null for missing file", async () => {
+    const result = await scanFile("/tmp/nonexistent-scan-file.txt");
+    expect(result).toBeNull();
   });
 });
