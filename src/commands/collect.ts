@@ -4,6 +4,8 @@ import { stringify } from "@dotformat/core";
 import type { DotfDocument } from "@dotformat/core";
 import type { CollectorContext, CollectorResult } from "../collectors/types";
 import { resolveOutputDir } from "../utils/resolve-output";
+import { scanContent, summarize, formatReport } from "../scan";
+import type { ScanResult } from "../scan";
 import { collectMeta } from "../collectors/meta";
 import { collectClaude } from "../collectors/claude";
 import { collectCursor } from "../collectors/cursor";
@@ -70,6 +72,19 @@ export async function collect(args: string[]) {
     Object.assign(sections, result);
   }
 
+  const scanResults: ScanResult[] = [];
+  if (redact) {
+    for (const [name, section] of Object.entries(sections)) {
+      if (section.content) {
+        const result = scanContent(name, section.content);
+        scanResults.push(result);
+        if (result.action === "skip") {
+          delete sections[name];
+        }
+      }
+    }
+  }
+
   const doc: DotfDocument = { sections };
   const output = stringify(doc);
 
@@ -80,4 +95,10 @@ export async function collect(args: string[]) {
   await Bun.write(filepath, output);
 
   console.log(`Report saved to: ${filepath}`);
+
+  if (redact) {
+    const summary = summarize(scanResults);
+    const report = formatReport(summary);
+    if (report) console.log(report);
+  }
 }

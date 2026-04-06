@@ -9,6 +9,7 @@
   "scripts": {
     "collect": "bun bin/dotfiles.ts collect",
     "backup": "bun bin/dotfiles.ts backup",
+    "scan": "bun bin/dotfiles.ts scan",
     "compare": "bun bin/dotfiles.ts compare",
     "test": "bun test"
   },

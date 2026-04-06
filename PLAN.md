@@ -45,7 +45,7 @@ Real file copies in structured directories. Two tracks:
      (user's storage, not ours)
 ```
 
-**Status: Planned (Phase 5)**
+**Status: Done (Phase 5)**
 
 ### Journey C: "Set up a new machine"
 Restore from backup. Interactive picker. Conflict resolution.
@@ -404,8 +404,8 @@ const registry: ConfigEntry[] = [
 | # | Phase | What | Depends on |
 |---|---|---|---|
 | 1 | ~~Phase 4~~ | CLI rewrite (collect, compare, list) | Done |
-| 2 | Phase 5 | Backup (structured file copy) | — |
-| 3 | Phase 7 | Sensitivity scan | Before backup ships |
+| 2 | ~~Phase 5~~ | Backup (structured file copy) | Done |
+| 3 | ~~Phase 7~~ | Sensitivity scan | Done |
 | 4 | Phase 6 | Restore (with --pick, --dry-run) | Backup |
 | 5 | Phase 8 | Diff against live system | Backup |
 | 6 | Phase 9 | Init (GitHub template) | Backup + Restore |

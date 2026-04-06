@@ -2,6 +2,8 @@ import { hostname } from 'os';
 import { join, dirname } from 'path';
 import { resolveOutputDir } from '../utils/resolve-output';
 import { backupSources } from '../backup/sources';
+import { scanContent, summarize, formatReport, applyRedactions } from '../scan';
+import type { ScanResult } from '../scan';
 import type { BackupEntry, BackupSource } from '../backup/types';
 
 function parseBackupArgs(args: string[]) {
@@ -31,12 +33,23 @@ async function copyFile(
   entry: BackupEntry & { type: 'file' },
   destRoot: string,
   redact: boolean,
+  scanResults: ScanResult[],
 ): Promise<boolean> {
   const file = Bun.file(entry.src);
   if (!(await file.exists())) return false;
 
   let content = await file.text();
+  const scanResult = scanContent(entry.dest, content);
+
+  if (redact && scanResult.action === 'skip') {
+    scanResults.push(scanResult);
+    return false;
+  }
+
   if (redact && entry.redact) content = entry.redact(content);
+  if (redact) content = applyRedactions(content, scanResult);
+
+  scanResults.push(scanResult);
 
   const destPath = join(destRoot, entry.dest);
   await Bun.$`mkdir -p ${dirname(destPath)}`.quiet();
@@ -73,6 +86,7 @@ export async function backup(args: string[]) {
   const sources = filterSources(backupSources, only, skip);
   let totalFiles = 0;
   const backedUpCategories: string[] = [];
+  const scanResults: ScanResult[] = [];
 
   for (const source of sources) {
     const entries = source.entries(Bun.env.HOME ?? '/tmp');
@@ -80,7 +94,7 @@ export async function backup(args: string[]) {
 
     for (const entry of entries) {
       if (entry.type === 'file') {
-        const copied = await copyFile(entry, backupDir, redact);
+        const copied = await copyFile(entry, backupDir, redact, scanResults);
         if (copied) categoryCount++;
       } else {
         categoryCount += await copyDir(entry, backupDir);
@@ -100,4 +114,10 @@ export async function backup(args: string[]) {
 
   console.log(`Backup saved to: ${backupDir}`);
   console.log(`  ${totalFiles} files across: ${backedUpCategories.join(', ')}`);
+
+  if (redact) {
+    const summary = summarize(scanResults);
+    const report = formatReport(summary);
+    if (report) console.log(report);
+  }
 }
