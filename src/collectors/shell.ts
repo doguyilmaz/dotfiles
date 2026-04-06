@@ -1,16 +1,13 @@
 import { join } from "path";
-import type { Collector } from "./types";
+import type { Collector, CollectorResult } from "./types";
 import { makeSection } from "./types";
 
 export const collectShell: Collector = async (ctx) => {
   const zshrcFile = Bun.file(join(ctx.home, ".zshrc"));
-
-  if (!(await zshrcFile.exists())) return {};
+  if (!(await zshrcFile.exists())) return {} as CollectorResult;
 
   const content = await zshrcFile.text();
   return {
-    "file:shell/zshrc": makeSection("file:shell/zshrc", {
-      content: content.trim(),
-    }),
+    "shell.zshrc": makeSection("shell.zshrc", { content: content.trim() }),
   };
 };

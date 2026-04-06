@@ -1,4 +1,5 @@
 import { join } from "path";
+import { Glob } from "bun";
 import type { Collector } from "./types";
 import { makeSection } from "./types";
 
@@ -16,15 +17,20 @@ export const collectClaude: Collector = async (ctx) => {
           pairs[key] = String(val);
         }
       }
+      if (settings.enabledPlugins) {
+        for (const [key, val] of Object.entries(settings.enabledPlugins)) {
+          pairs[key] = String(val);
+        }
+      }
       if (Object.keys(pairs).length) {
-        result["ai.claude.plugins"] = makeSection("ai.claude.plugins", { pairs });
+        result["ai.claude.settings"] = makeSection("ai.claude.settings", { pairs });
       }
     } catch {}
   }
 
   try {
     const skillsDir = join(claudeDir, "skills");
-    const glob = new Bun.Glob("*");
+    const glob = new Glob("*");
     const items: { raw: string; columns: string[] }[] = [];
     for await (const entry of glob.scan(skillsDir)) {
       items.push({ raw: entry, columns: [entry] });
@@ -37,7 +43,7 @@ export const collectClaude: Collector = async (ctx) => {
   const claudeMdFile = Bun.file(join(claudeDir, "CLAUDE.md"));
   if (await claudeMdFile.exists()) {
     const content = await claudeMdFile.text();
-    result["file:claude/CLAUDE.md"] = makeSection("file:claude/CLAUDE.md", {
+    result["ai.claude.md"] = makeSection("ai.claude.md", {
       content: content.trim(),
     });
   }

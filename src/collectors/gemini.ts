@@ -1,4 +1,5 @@
 import { join } from "path";
+import { Glob } from "bun";
 import type { Collector } from "./types";
 import { makeSection } from "./types";
 
@@ -22,7 +23,7 @@ export const collectGemini: Collector = async (ctx) => {
 
   try {
     const skillsDir = join(geminiDir, "skills");
-    const glob = new Bun.Glob("*");
+    const glob = new Glob("*");
     const items: { raw: string; columns: string[] }[] = [];
     for await (const entry of glob.scan(skillsDir)) {
       items.push({ raw: entry, columns: [entry] });
@@ -35,7 +36,7 @@ export const collectGemini: Collector = async (ctx) => {
   const geminiMdFile = Bun.file(join(geminiDir, "GEMINI.md"));
   if (await geminiMdFile.exists()) {
     const content = await geminiMdFile.text();
-    result["file:gemini/GEMINI.md"] = makeSection("file:gemini/GEMINI.md", {
+    result["ai.gemini.md"] = makeSection("ai.gemini.md", {
       content: content.trim(),
     });
   }

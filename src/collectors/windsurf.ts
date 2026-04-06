@@ -1,4 +1,5 @@
 import { join } from "path";
+import { Glob } from "bun";
 import type { Collector } from "./types";
 import { makeSection } from "./types";
 
@@ -9,14 +10,12 @@ export const collectWindsurf: Collector = async (ctx) => {
   const mcpFile = Bun.file(join(windsurfDir, "mcp_config.json"));
   if (await mcpFile.exists()) {
     const content = await mcpFile.text();
-    result["ai.windsurf.mcp"] = makeSection("ai.windsurf.mcp", {
-      content: content.trim(),
-    });
+    result["ai.windsurf.mcp"] = makeSection("ai.windsurf.mcp", { content: content.trim() });
   }
 
   try {
     const skillsDir = join(windsurfDir, "skills");
-    const glob = new Bun.Glob("*");
+    const glob = new Glob("*");
     const items: { raw: string; columns: string[] }[] = [];
     for await (const entry of glob.scan(skillsDir)) {
       items.push({ raw: entry, columns: [entry] });

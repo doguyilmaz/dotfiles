@@ -8,9 +8,7 @@ export const collectEditors: Collector = async (ctx) => {
   const zedFile = Bun.file(join(ctx.home, ".config/zed/settings.json"));
   if (await zedFile.exists()) {
     const content = await zedFile.text();
-    result["editor.zed"] = makeSection("editor.zed", {
-      content: content.trim(),
-    });
+    result["editor.zed"] = makeSection("editor.zed", { content: content.trim() });
   }
 
   const cursorSettingsFile = Bun.file(
@@ -18,9 +16,7 @@ export const collectEditors: Collector = async (ctx) => {
   );
   if (await cursorSettingsFile.exists()) {
     const content = await cursorSettingsFile.text();
-    result["editor.cursor"] = makeSection("editor.cursor", {
-      content: content.trim(),
-    });
+    result["editor.cursor"] = makeSection("editor.cursor", { content: content.trim() });
   }
 
   return result;
