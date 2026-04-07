@@ -14,6 +14,13 @@
     "diff": "bun bin/dotfiles.ts diff",
     "compare": "bun bin/dotfiles.ts compare",
     "test": "bun test",
+    "prepublishOnly": "bun test",
+    "bump:patch": "npm version patch",
+    "bump:minor": "npm version minor",
+    "bump:major": "npm version major",
+    "release:patch": "bun run bump:patch && bun publish",
+    "release:minor": "bun run bump:minor && bun publish",
+    "release:major": "bun run bump:major && bun publish",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
