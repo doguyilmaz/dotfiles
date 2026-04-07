@@ -4,7 +4,7 @@ import { withMermaid } from 'vitepress-plugin-mermaid';
 export default withMermaid(
   defineConfig({
     title: '@dotformat/cli',
-    description: 'Machine identity CLI — collect, backup, restore, scan, and diff configs across machines',
+    description: 'Collect, backup, restore, and diff machine configs across machines',
     lang: 'en-US',
     base: '/dotfiles/',
     appearance: 'dark',

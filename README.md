@@ -1,6 +1,6 @@
 # @dotformat/cli
 
-**Machine identity CLI** — collect, backup, restore, scan, compare, and diff your configs across machines. Built on [Bun](https://bun.sh), outputs structured `.dotf` snapshots and registry-driven file backups with built-in sensitivity scanning.
+Collect, backup, restore, and diff machine configs across machines. Built on [Bun](https://bun.sh), outputs `.dotf` snapshots and structured file backups with built-in sensitivity scanning.
 
 | | |
 |---|---|
@@ -14,7 +14,7 @@
 
 ## What It Does
 
-**Snapshot** your machine config into a single parseable `.dotf` file — AI tools, shell, git, editors, SSH, brew, apps, and more. **Back up** real config files into a structured directory. **Restore** them on a new machine with conflict resolution and rollback. **Diff** your backup against live state. **Scan** for secrets and sensitive data automatically.
+**Snapshot** your machine config into a single parseable `.dotf` file covering AI tools, shell, git, editors, SSH, brew, and apps. **Back up** real config files into a structured directory. **Restore** them on a new machine with conflict resolution and rollback. **Diff** your backup against live state. **Scan** for secrets and sensitive data automatically.
 
 ---
 
@@ -89,7 +89,7 @@ dotfiles scan [path]
 
 Standalone scan for secrets, tokens, and sensitive data. Scans directories recursively (skips `.git/`, `node_modules/`, files >1MB).
 
-Detects 27+ patterns across 3 severity levels — see [Sensitivity](#sensitivity-model) below.
+Detects 27+ patterns across 3 severity levels. See [Sensitivity](#sensitivity-model) below.
 
 ### `diff` — Backup vs live
 
@@ -157,9 +157,9 @@ Plus runtime collectors (not registry-driven): **meta** (hostname, OS, date), **
 
 Three-stage pipeline that runs automatically on `collect` and `backup`:
 
-**1. Detection** — regex pattern matching per line
-**2. Classification** — HIGH / MEDIUM / LOW severity
-**3. Action** — `skip` (drop file), `redact` (replace values), or `include` (keep as-is)
+1. **Detection**: regex pattern matching per line
+2. **Classification**: HIGH / MEDIUM / LOW severity
+3. **Action**: `skip` (drop file), `redact` (replace values), or `include` (keep as-is)
 
 ### Detected Patterns (27+)
 
@@ -313,7 +313,7 @@ bun run docs:build          # Build static site
 bun run docs:preview        # Preview build
 ```
 
-Full documentation: [docs/](./docs/) — commands, architecture, sensitivity patterns, execution flows, behavior reference.
+Full documentation: [docs/](./docs/) (commands, architecture, sensitivity patterns, execution flows, behavior reference).
 
 ---
 
@@ -337,4 +337,4 @@ Next: `init` (GitHub template flow), plugin system for community collectors. See
 
 ## License
 
-`UNLICENSED` — intended MIT for public release. See [package.json](./package.json).
+`UNLICENSED`. Intended MIT for public release. See [package.json](./package.json).
