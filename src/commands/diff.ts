@@ -32,7 +32,7 @@ const RESET = isTTY ? "\x1b[0m" : "";
 
 const STATUS_LABELS: Record<FileStatus, string> = {
   conflict: "modified",
-  new: "new on machine",
+  new: "new in backup (missing on machine)",
   same: "unchanged",
   redacted: "redacted",
 };
