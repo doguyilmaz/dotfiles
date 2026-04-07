@@ -93,7 +93,7 @@ dotfiles list brew                         # Query a section from latest report
 dotfiles compare home.dotf work.dotf       # Diff two snapshots
 ```
 
-The `.dotf` format is structured text with sections, key-value pairs, and content blocks. It's designed to be human-readable, git-diffable, and parseable by `@dotformat/core`.
+The `.dotf` format is structured text with sections, key-value pairs, and content blocks. It's designed to be human-readable, git-diffable, and parseable by [`@dotformat/core`](https://www.npmjs.com/package/@dotformat/core).
 
 ### Journey B: "Back up my configs"
 

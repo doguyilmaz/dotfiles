@@ -494,8 +494,8 @@ enabledPlugins = ...
 permissions = ...
 
 [ai.claude.skills]
-- superskill.md
-- web-dev.md
+superskill.md
+web-dev.md
 ```
 
 If no sections match:

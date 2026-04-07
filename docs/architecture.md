@@ -291,7 +291,7 @@ The scan system doesn't just block or allow — it operates as a three-stage pip
 
 | Package | Role |
 |---------|------|
-| `@dotformat/core` | `.dotf` format parser, stringifier, comparator, diff formatter |
+| [`@dotformat/core`](https://www.npmjs.com/package/@dotformat/core) | `.dotf` format parser, stringifier, comparator, diff formatter ([source](https://github.com/doguyilmaz/dotformat)) |
 | `vitepress` | Documentation site (dev dependency) |
 | `vitepress-plugin-mermaid` | Mermaid diagram support in docs (dev dependency) |
 | `@types/bun` | TypeScript definitions for Bun APIs (dev dependency) |

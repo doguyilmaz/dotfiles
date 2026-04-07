@@ -1,6 +1,6 @@
 # .dotf File Format
 
-The `.dotf` format is a structured text format designed for machine config snapshots. It's human-readable, git-diffable, and parseable by the `@dotformat/core` library.
+The `.dotf` format is a structured text format designed for machine config snapshots. It's human-readable, git-diffable, and parseable by [`@dotformat/core`](https://www.npmjs.com/package/@dotformat/core). The format spec and parser/serializer API live in the [core repo](https://github.com/doguyilmaz/dotformat). This page covers usage from the CLI perspective.
 
 ## Format Overview
 
@@ -35,18 +35,18 @@ Pairs appear immediately after the section header, one per line, in `key = value
 
 ```
 [apps.brew.formulae]
-- bat
-- eza
-- fd
-- fzf
+bat
+eza
+fd
+fzf
 ```
 
-Items are prefixed with `- `. For tabular data with columns, the pipe `|` separator is used:
+Any line that isn't a section header, key-value pair, or multiline marker is treated as an item. For tabular data with columns, use the pipe `|` separator:
 
 ```
 [ssh.hosts]
-- github.com | [REDACTED] | [REDACTED]
-- gitlab.com | [REDACTED] | [REDACTED]
+github.com | [REDACTED] | [REDACTED]
+gitlab.com | [REDACTED] | [REDACTED]
 ```
 
 ### Content Blocks
@@ -74,28 +74,30 @@ enabledPlugins = computer-use
 permissions.allow = Edit,Write
 
 [ai.claude.skills]
-- superskill.md
-- web-dev.md
+superskill.md
+web-dev.md
 
 [ai.ollama.models]
-- llama3.2:latest | 2.0 GB | 2 days ago
-- codellama:7b | 3.8 GB | 5 days ago
+llama3.2:latest | 2.0 GB | 2 days ago
+codellama:7b | 3.8 GB | 5 days ago
 
 [shell.zshrc]
+<<<
 export PATH="$HOME/bin:$PATH"
 source "$HOME/.oh-my-zsh/oh-my-zsh.sh"
+>>>
 
 [terminal.p10k]
 exists = true
 lines = 1247
 
 [apps.brew.formulae]
-- bat
-- eza
-- fd
-- fzf
-- git
-- ripgrep
+bat
+eza
+fd
+fzf
+git
+ripgrep
 ```
 
 ## `@dotformat/core` Library
