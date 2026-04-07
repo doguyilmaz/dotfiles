@@ -1,6 +1,6 @@
 {
   "name": "@dotformat/cli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Collect, backup, restore, scan, and diff machine configs across machines",
   "type": "module",
   "bin": {
