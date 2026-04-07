@@ -19,3 +19,7 @@ ai/**/history.*
 reports/
 
 node_modules/
+
+# VitePress build/cache output
+docs/.vitepress/dist/
+docs/.vitepress/cache/

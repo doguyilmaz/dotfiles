@@ -1,228 +1,340 @@
-# dotfiles
+# @dotformat/cli
 
-Personal configuration files and custom AI skills synced across machines. Optimized for fast setup on new/replacement machines.
+**Machine identity CLI** — collect, backup, restore, scan, compare, and diff your configs across machines. Built on [Bun](https://bun.sh), outputs structured `.dotf` snapshots and registry-driven file backups with built-in sensitivity scanning.
 
-> **The big picture:** This repo syncs configs, but the real goal is a curated **superskill** — a single skill that encodes my preferred development workflow (web, mobile, animations, email, etc.) by composing the best community skills. One update here propagates to every AI tool on every machine via `skills.sh`.
+| | |
+|---|---|
+| **Runtime** | [Bun](https://bun.sh) >= 1.0 (required) |
+| **Package** | `@dotformat/cli` |
+| **Format** | [`@dotformat/core`](https://github.com/doguyilmaz/dotformat) `.dotf` parser/stringify/compare |
+| **Tests** | 102 tests, 307 assertions |
+| **Platforms** | macOS, Linux, Windows |
 
-## Machines
+---
 
-| Machine | OS | Shell | Primary Use |
-|---|---|---|---|
-| Home Mac | macOS | zsh (oh-my-zsh + p10k) | Primary dev machine |
-| Work Mac | macOS | zsh (oh-my-zsh + p10k) | Dev — mostly synced with personal, few extras |
-| Home Windows | Windows | — | Non-dev (Stable Diffusion, etc.) |
+## What It Does
 
-## Structure
+**Snapshot** your machine config into a single parseable `.dotf` file — AI tools, shell, git, editors, SSH, brew, apps, and more. **Back up** real config files into a structured directory. **Restore** them on a new machine with conflict resolution and rollback. **Diff** your backup against live state. **Scan** for secrets and sensitive data automatically.
+
+---
+
+## Install
+
+```bash
+# Run directly (no install)
+bunx @dotformat/cli collect
+
+# Or clone and run
+git clone https://github.com/doguyilmaz/dotfiles.git
+cd dotfiles && bun install
+bun bin/dotfiles.ts collect
+```
+
+---
+
+## Commands
+
+### `collect` — Machine snapshot
+
+```bash
+dotfiles collect [--no-redact] [--slim] [-o path]
+```
+
+Generates a `.dotf` report with all detected configs. Runs all collectors in parallel via `Promise.allSettled`.
+
+| Flag | Effect |
+|------|--------|
+| `--no-redact` | Include sensitive values as-is |
+| `--slim` | Truncate content sections to 10 lines (AI-friendly, ~65% smaller) |
+| `-o path` | Custom output directory |
+
+Output: `<hostname>-YYYYMMDDHHMMSS.dotf`
+
+### `backup` — Structured file copy
+
+```bash
+dotfiles backup [--no-redact] [--archive] [--only ai,shell] [--skip editor] [-o path]
+```
+
+Copies real config files into a categorized directory structure. Sensitivity scan runs before every write.
+
+| Flag | Effect |
+|------|--------|
+| `--archive` | Export as `.tar.gz` (uses system tar) |
+| `--only <categories>` | Include only these categories |
+| `--skip <categories>` | Exclude these categories |
+| `--no-redact` | Skip sensitivity redaction |
+| `-o path` | Custom output directory |
+
+Output: `backup-<hostname>-YYYYMMDDHHMMSS/`
+
+### `restore` — Restore from backup
+
+```bash
+dotfiles restore <path> [--pick] [--dry-run]
+```
+
+Restores backed-up files to their original locations with safety features:
+
+- **Pre-restore snapshot**: saves conflicting files before overwrite (reversible via `dotfiles restore`)
+- **Conflict prompt**: `o` overwrite / `s` skip / `d` show diff / `a` overwrite all / `l` skip all
+- **Redacted files**: automatically skipped (won't write `[REDACTED]` values)
+- **`.local` overrides**: `backup/shell/.zshrc.local` restores to `~/.zshrc.local`
+
+### `scan` — Sensitivity scanner
+
+```bash
+dotfiles scan [path]
+```
+
+Standalone scan for secrets, tokens, and sensitive data. Scans directories recursively (skips `.git/`, `node_modules/`, files >1MB).
+
+Detects 27+ patterns across 3 severity levels — see [Sensitivity](#sensitivity-model) below.
+
+### `diff` — Backup vs live
+
+```bash
+dotfiles diff [path] [--section <name>]
+```
+
+Color-coded comparison of backup state against current machine. Auto-finds latest backup if no path given. TTY-aware (no colors in pipes).
+
+### `status` — Quick summary
+
+```bash
+dotfiles status
+```
+
+Shows backup age, modified/unchanged counts, lists changed files.
+
+### `compare` — Diff two reports
+
+```bash
+dotfiles compare [file1] [file2]
+```
+
+Structured diff between two `.dotf` files. Without args, compares the newest two reports in `<cwd>/reports`.
+
+### `list` — Query a report
+
+```bash
+dotfiles list <section>
+```
+
+Print a section from the latest report. Fuzzy matching: `brew`, `ai`, `cursor` all work.
+
+---
+
+## Config Registry
+
+All config sources are defined in a single registry (`src/registry/entries.ts`). Each entry specifies:
+
+- **ID**: section name (e.g., `ai.claude.settings`)
+- **Paths**: per-platform (`darwin`, `linux`, `win32`)
+- **Kind**: `file` | `dir` | `json-extract` | `file` + `metadata`
+- **Category**: powers `--only` / `--skip` filtering
+- **Sensitivity**: `low` / `medium` / `high`
+- **Redact**: optional custom redaction function
+
+### What's Tracked
+
+| Category | Configs |
+|----------|---------|
+| **ai** | Claude (settings, skills, CLAUDE.md), Cursor (MCP, skills), Gemini (settings, skills, GEMINI.md), Windsurf (MCP, skills) |
+| **shell** | `.zshrc` |
+| **git** | `.gitconfig`, `.gitignore_global`, GitHub CLI config |
+| **editor** | Zed, Cursor, Neovim, Vim |
+| **terminal** | `.p10k.zsh` (metadata), `.tmux.conf` |
+| **ssh** | SSH config (auto-redacted) |
+| **npm** | `.npmrc` (auto-redacted) |
+| **bun** | `.bunfig.toml` |
+
+Plus runtime collectors (not registry-driven): **meta** (hostname, OS, date), **SSH hosts** (structured parsed table), **Ollama models**, **Homebrew** (formulae + casks), **apps** (macOS `/Applications`, Raycast, AltTab).
+
+---
+
+## Sensitivity Model
+
+Three-stage pipeline that runs automatically on `collect` and `backup`:
+
+**1. Detection** — regex pattern matching per line
+**2. Classification** — HIGH / MEDIUM / LOW severity
+**3. Action** — `skip` (drop file), `redact` (replace values), or `include` (keep as-is)
+
+### Detected Patterns (27+)
+
+| Severity | Patterns |
+|----------|----------|
+| **HIGH** | Private keys (PEM, PGP), auth tokens (npm, Bearer), GitHub tokens (`ghp_`, `gho_`, `github_pat_`), AI keys (OpenAI `sk-`, Anthropic `sk-ant-`), AWS keys (`AKIA...`, secret key), Google API/OAuth/Firebase, Cloudflare, Stripe (`sk_live_`, `pk_test_`), Mapbox, Twilio, SendGrid, Slack (`xoxb-`), Discord, Supabase, Vercel, JWT tokens, database URLs (postgres/mysql/mongodb/redis), generic `SECRET=`/`API_KEY=`/`PASSWORD=` patterns |
+| **MEDIUM** | IP addresses, email addresses |
+| **LOW** | Home directory paths (`/Users/<username>/`) |
+
+### Default Actions
+
+- **Private keys** → skip entire file
+- **Auth tokens, API keys, DB URLs** → redact values with `[REDACTED]`
+- **IP addresses** → redact
+- **Email addresses** → include (warn only)
+- **Home paths** → include
+
+Override with `--no-redact` when you control the destination.
+
+---
+
+## Output Path Logic
+
+| Condition | Output Directory |
+|-----------|-----------------|
+| `-o /path` given | Explicit path |
+| Running from cloned repo (`.git` in cwd) | `<cwd>/reports/` |
+| Running as global CLI | `~/Downloads` |
+
+---
+
+## Backup Directory Structure
+
+```
+backup-<hostname>-YYYYMMDDHHMMSS/
+├── ai/
+│   ├── claude/
+│   │   ├── settings.json
+│   │   ├── CLAUDE.md
+│   │   └── skills/
+│   ├── cursor/
+│   │   ├── mcp.json
+│   │   └── skills/
+│   ├── gemini/
+│   │   ├── settings.json
+│   │   ├── GEMINI.md
+│   │   └── skills/
+│   └── windsurf/
+│       ├── mcp_config.json
+│       └── skills/
+├── shell/
+│   └── .zshrc
+├── git/
+│   ├── .gitconfig
+│   ├── .gitignore_global
+│   └── gh/config.yml
+├── editor/
+│   ├── zed/settings.json
+│   ├── cursor/settings.json
+│   ├── nvim/init.lua
+│   └── .vimrc
+├── terminal/
+│   ├── .p10k.zsh
+│   └── .tmux.conf
+├── ssh/
+│   └── config              # redacted by default
+├── npm/
+│   └── .npmrc              # redacted by default
+└── bun/
+    └── .bunfig.toml
+```
+
+Only creates directories/files that actually exist on the machine.
+
+---
+
+## Project Structure
 
 ```
 dotfiles/
-├── ai/                        # AI tools — first-class configs
-│   ├── claude/
-│   │   ├── CLAUDE.md          # Global Claude Code instructions/rules
-│   │   └── settings.json     # Enabled plugins & preferences
-│   ├── cursor/
-│   │   ├── mcp.json           # MCP server configs
-│   │   └── rules/             # Cursor rules (if any)
-│   ├── gemini/
-│   │   ├── GEMINI.md          # Gemini CLI rules/directives
-│   │   └── settings.json     # Gemini preferences
-│   ├── windsurf/
-│   │   └── mcp_config.json   # MCP server configs
-│   └── shared/
-│       ├── ai-tools.md        # Full skills/plugins/MCP inventory (superskill blueprint)
-│       └── mcp-servers.md     # Canonical MCP server list & setup notes
-├── shell/
-│   ├── .zshrc                 # Main zsh config (shared)
-│   ├── aliases.zsh            # Shared aliases
-│   └── exports.zsh            # Shared exports & PATH
-├── git/
-│   ├── .gitconfig             # Global git config
-│   └── .gitignore_global      # Global gitignore
-├── editor/
-│   ├── cursor/
-│   │   └── settings.json     # Cursor editor settings
-│   ├── vscode/
-│   │   └── settings.json     # VS Code editor settings
-│   └── zed/
-│       └── settings.json     # Zed editor settings
-├── terminal/
-│   └── .p10k.zsh             # Powerlevel10k theme config
-├── skills/                        # Custom AI skills (the main event)
-│   ├── superskill/
-│   │   ├── skill.md               # The superskill — composable dev workflow
-│   │   └── README.md              # What it does, which sub-skills, boundaries
-│   ├── web-dev/                   # Web app development skill
-│   │   └── skill.md
-│   ├── mobile-dev/                # Mobile app development skill
-│   │   └── skill.md
-│   └── skills.sh                  # Installer — symlinks skills to all AI tools
-├── apps/
-│   ├── Brewfile               # Homebrew formulae & casks
-│   └── apps.md                # Full app list with install sources
-├── macos/
-│   └── defaults.sh           # macOS system preferences
-├── setup/
-│   └── install.sh            # macOS installer
-├── CLAUDE.md                  # Project-level Claude instructions
-└── README.md
+├── bin/
+│   └── dotfiles.ts              # Entry point (Bun runtime check)
+├── src/
+│   ├── cli.ts                   # Command router (8 commands)
+│   ├── commands/
+│   │   ├── collect.ts           # .dotf snapshot generation
+│   │   ├── backup.ts            # Structured file backup
+│   │   ├── scan.ts              # Standalone sensitivity scan
+│   │   ├── restore.ts           # Restore from backup
+│   │   ├── diff.ts              # Backup vs live comparison
+│   │   ├── status.ts            # Quick backup summary
+│   │   ├── compare.ts           # Diff two .dotf files
+│   │   └── list.ts              # Fuzzy section query
+│   ├── registry/
+│   │   ├── types.ts             # ConfigEntry, Platform, EntryKind
+│   │   ├── entries.ts           # 23 config entries (single source of truth)
+│   │   ├── resolve.ts           # Platform-aware path resolution
+│   │   ├── collector.ts         # Registry → Collector generator
+│   │   ├── backup.ts            # Registry → BackupSource generator
+│   │   └── index.ts             # Public exports
+│   ├── collectors/
+│   │   ├── types.ts             # CollectorContext, CollectorResult, Collector
+│   │   ├── meta.ts              # hostname, OS, date
+│   │   ├── ssh.ts               # Structured SSH host parsing
+│   │   ├── ollama.ts            # Ollama model list
+│   │   ├── apps.ts              # macOS apps, Raycast, AltTab
+│   │   └── homebrew.ts          # brew formulae + casks
+│   ├── scan/
+│   │   ├── types.ts             # ScanPattern, ScanResult, Severity
+│   │   ├── patterns.ts          # 27+ detection patterns (cached)
+│   │   ├── scanner.ts           # scanContent, scanFile, summarize
+│   │   ├── redactor.ts          # applyRedactions
+│   │   ├── report.ts            # Sensitivity report formatter
+│   │   └── index.ts
+│   ├── backup/
+│   │   ├── types.ts             # BackupEntry, BackupSource
+│   │   └── sources.ts           # Registry-generated backup sources
+│   ├── restore/
+│   │   ├── types.ts             # RestoreEntry, RestorePlan, FileStatus
+│   │   ├── plan.ts              # buildRestoreMap, buildRestorePlan
+│   │   ├── execute.ts           # executeRestore, createSnapshot
+│   │   ├── prompt.ts            # Interactive conflict prompts
+│   │   └── index.ts
+│   └── utils/
+│       ├── constants.ts         # REDACTION_MARKER
+│       ├── home.ts              # getHome() with validation
+│       ├── redact.ts            # SSH/npm custom redaction functions
+│       ├── resolve-output.ts    # Output directory resolution
+│       ├── find-backup.ts       # Latest backup finder + age calc
+│       └── timestamp.ts         # YYYYMMDDHHMMSS generator
+├── tests/                       # 102 tests across 14 files
+├── docs/                        # VitePress documentation site
+└── package.json
 ```
 
-> **Note:** `ai/cursor/` holds MCP/rules configs (from `~/.cursor/`), while `editor/cursor/` holds editor settings (from `~/Library/Application Support/Cursor/`). Same tool, different config scopes.
+---
 
-## Collect Machine Config
-
-Generate a report of all AI tools, skills, MCPs, shell, git, and editor configs on any machine. No clone needed.
+## Development
 
 ```bash
-bunx @doguyilmaz/dotfiles
+bun install
+bun test                    # 102 tests, 307 assertions
+bun bin/dotfiles.ts <cmd>   # Run locally
 ```
 
-Or if the repo is already cloned:
+### Docs (VitePress)
 
 ```bash
-bash ~/dotfiles/setup/collect-machine-config.sh
+bun run docs:dev            # Dev server with hot reload
+bun run docs:build          # Build static site
+bun run docs:preview        # Preview build
 ```
 
-Report is saved to `reports/` (in repo) or `~/` (standalone).
+Full documentation: [docs/](./docs/) — commands, architecture, sensitivity patterns, execution flows, behavior reference.
 
-## Quick Start
+---
 
-> TODO: Will be implemented in Phase 4
+## Platform Support
 
-```bash
-git clone https://github.com/doguyilmaz/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-./setup/install.sh
-```
+| Platform | Path Expansion | Notes |
+|----------|---------------|-------|
+| **macOS** (`darwin`) | `~` → `$HOME`, `~/Library/...` | Full support, Homebrew/apps collectors |
+| **Linux** | `~` → `$HOME`, `~/.config/...` | Full support, no Homebrew/apps |
+| **Windows** (`win32`) | `%APPDATA%`, `%USERPROFILE%` | Registry paths defined, shell configs excluded |
+
+---
 
 ## Roadmap
 
-### Phase 1 — Organize & Sync Configs
+Completed: CLI rewrite, backup, sensitivity scan, restore, diff, config registry, multi-OS, status, `--slim`, parallel collectors, archive export.
 
-Get all config files into the repo with a clean structure. AI configs are top priority.
+Next: `init` (GitHub template flow), plugin system for community collectors. See [PLAN.md](./PLAN.md) for full details.
 
-**AI Tools:**
-- [ ] Add Claude Code configs (`ai/claude/CLAUDE.md`, `ai/claude/settings.json`)
-- [ ] Add Cursor MCP config (`ai/cursor/mcp.json`)
-- [ ] Add Gemini CLI configs (`ai/gemini/GEMINI.md`, `ai/gemini/settings.json`)
-- [ ] Add Windsurf MCP config (`ai/windsurf/mcp_config.json`)
-- [ ] Create shared MCP servers reference (`ai/shared/mcp-servers.md`)
+---
 
-**Shell & Git:**
-- [ ] Move `.zshrc` to `shell/.zshrc`
-- [ ] Add `.gitconfig` and `.gitignore_global` to `git/`
+## License
 
-**Editors & Terminal:**
-- [ ] Add Zed settings to `editor/zed/`
-- [ ] Add `.p10k.zsh` to `terminal/`
-
-**Repo Hygiene:**
-- [ ] Add `.gitignore` to exclude secrets, caches, API keys
-- [ ] Update symlink reference in README
-
-### Phase 2 — Clean Up & Cross-Machine Support
-
-Make configs portable across machines and usernames.
-
-- [ ] Replace hardcoded `/Users/dogukyilmaz/` with `$HOME` in all configs
-- [ ] Remove duplicate blocks in `.zshrc` (bun, fnm are duplicated)
-- [ ] Remove stale/placeholder paths (e.g. `~/path/to/zig`)
-- [ ] Split `.zshrc` into shared + platform-specific files (source conditionally)
-- [ ] Add OS detection for platform-specific blocks
-
-### Phase 3 — Superskill (Core Vision)
-
-A curated, composable skill that encodes the preferred dev workflow. Shared across all AI tools via `skills.sh`.
-
-**Research & Design** (using `ai/shared/ai-tools.md` as blueprint)**:**
-- [ ] Audit all currently installed skills across Claude, Cursor, Windsurf, Gemini
-- [ ] Compare with work Mac report — merge skill inventories
-- [ ] Categorize: which skills for web, mobile, animations, email, infra, etc.
-- [ ] Define boundaries: when each skill applies, in what context, why
-- [ ] Use `find-skills` to discover additional community skills worth including
-- [ ] Map skill references (Software Mansion animations, Resend react-email, Vercel, Callstack RN, Expo)
-
-**Build:**
-- [ ] Design superskill structure (directives + sub-skill references)
-- [ ] Create `skills/superskill/skill.md` — the main composable skill
-- [ ] Create domain-specific sub-skills if needed (`web-dev/`, `mobile-dev/`)
-- [ ] Create `skills/skills.sh` — installer that symlinks to `~/.claude/skills/`, `~/.cursor/skills/`, `~/.gemini/skills/`, `~/.codeium/windsurf/skills/`
-- [ ] Test across Claude Code, Cursor, Windsurf, Gemini CLI
-- [ ] Document skill boundaries and usage in `skills/superskill/README.md`
-
-### Phase 4 — Installer Script
-
-One command to set up a new machine. Critical for work Mac migrations.
-
-- [ ] Create `setup/install.sh` for macOS
-  - [ ] Detect OS and architecture
-  - [ ] Backup existing configs before overwriting
-  - [ ] Copy configs to their destinations (backup originals first)
-  - [ ] Install Homebrew + Brewfile (formulae, casks, Mac App Store apps)
-  - [ ] Install oh-my-zsh + plugins (zsh-autosuggestions, zsh-syntax-highlighting)
-  - [ ] Install dev tools (bun, fnm, etc.)
-- [ ] Create `apps/Brewfile` with all Homebrew dependencies
-- [ ] Symlink shared skills across AI tools (Claude/Cursor/Windsurf/Gemini point to one copy)
-- [ ] Add uninstall/restore script (restore backups)
-
-### Phase 5 — Work vs Personal Separation
-
-Keep work-specific configs separate without leaking into personal.
-
-- [ ] Define strategy: profiles directory vs conditional sourcing
-- [ ] Add `shell/.zshrc.work` for work-specific aliases, paths, env vars
-- [ ] Add work `.gitconfig` overrides (different email, signing key)
-- [ ] Document how to activate work profile on work machine
-- [ ] Ensure no work secrets end up in the repo
-
-### Phase 6 — App Installation & macOS Setup
-
-Full machine provisioning: install apps, set system preferences.
-
-- [ ] Create `apps/Brewfile` with all apps (formulae + casks + MAS)
-- [ ] Create `apps/apps.md` listing all apps with install sources
-- [ ] Add `macos/defaults.sh` for system preferences (Dock, Finder, keyboard, etc.)
-- [ ] Add Raycast config/preferences export
-- [ ] Add AltTab preferences export
-- [ ] Add SSH config template (without keys)
-
-### Phase 7 — Nice to Have
-
-- [ ] Evaluate chezmoi if templating needs grow
-- [ ] Add GitHub CLI config (`gh/`)
-- [ ] Windows setup script (`setup/install.ps1`) if needed
-- [ ] Add Homebrew bundle dump automation (keep Brewfile in sync)
-
-## Config Sync Strategy
-
-**Copy-based** — the repo is the source of truth. The installer copies configs to their destinations (with backup). No symlinks for primary configs.
-
-**Symlinks only for shared references** — when multiple tools need the same file (e.g. skills shared across Claude/Cursor/Windsurf/Gemini), the primary copy lives in one location and other tools symlink to it. One source on disk, no drift.
-
-### Install Reference
-
-```bash
-# --- AI Tools (copy to home) ---
-cp ~/dotfiles/ai/claude/CLAUDE.md ~/.claude/CLAUDE.md
-cp ~/dotfiles/ai/claude/settings.json ~/.claude/settings.json
-cp ~/dotfiles/ai/cursor/mcp.json ~/.cursor/mcp.json
-cp ~/dotfiles/ai/gemini/GEMINI.md ~/.gemini/GEMINI.md
-cp ~/dotfiles/ai/gemini/settings.json ~/.gemini/settings.json
-cp ~/dotfiles/ai/windsurf/mcp_config.json ~/.codeium/windsurf/mcp_config.json
-
-# --- Shell ---
-cp ~/dotfiles/shell/.zshrc ~/.zshrc
-
-# --- Git ---
-cp ~/dotfiles/git/.gitconfig ~/.gitconfig
-cp ~/dotfiles/git/.gitignore_global ~/.gitignore_global
-
-# --- Editors ---
-cp ~/dotfiles/editor/zed/settings.json ~/.config/zed/settings.json
-
-# --- Terminal ---
-cp ~/dotfiles/terminal/.p10k.zsh ~/.p10k.zsh
-
-# --- Skills (symlink — shared across tools) ---
-# e.g. ~/.cursor/skills/superskill -> ~/.claude/skills/superskill
-```
+`UNLICENSED` — intended MIT for public release. See [package.json](./package.json).
