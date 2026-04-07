@@ -1,6 +1,6 @@
 # .dotf File Format
 
-The `.dotf` format is a structured text format designed for machine config snapshots. It's human-readable, git-diffable, and parseable by [`@dotformat/core`](https://www.npmjs.com/package/@dotformat/core). The format spec and parser/serializer API live in the [core repo](https://github.com/doguyilmaz/dotformat). This page covers usage from the CLI perspective.
+The `.dotf` format is a structured text format designed for machine config snapshots. It's human-readable, git-diffable, and parseable by [`@dotformat/core`](https://www.npmjs.com/package/@dotformat/core). The format spec and parser/serializer API live in the [core repo](https://github.com/doguyilmaz/dotf). This page covers usage from the CLI perspective.
 
 ## Format Overview
 
