@@ -45,7 +45,7 @@
     "type": "git",
     "url": "git+https://github.com/doguyilmaz/dotfiles.git"
   },
-  "homepage": "https://github.com/doguyilmaz/dotfiles#readme",
+  "homepage": "https://doguyilmaz.github.io/dotfiles",
   "dependencies": {
     "@dotformat/core": "^0.2.0"
   },

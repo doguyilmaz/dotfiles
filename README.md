@@ -5,8 +5,8 @@ Collect, backup, restore, and diff machine configs across machines. Built on [Bu
 | | |
 |---|---|
 | **Runtime** | [Bun](https://bun.sh) >= 1.0 (required) |
-| **Package** | `@dotformat/cli` |
-| **Format** | [`@dotformat/core`](https://github.com/doguyilmaz/dotformat) `.dotf` parser/stringify/compare |
+| **Package** | [`@dotformat/cli`](https://www.npmjs.com/package/@dotformat/cli) |
+| **Format** | [`@dotformat/core`](https://www.npmjs.com/package/@dotformat/core) `.dotf` parser/stringify/compare |
 | **Tests** | 102 tests, 307 assertions |
 | **Platforms** | macOS, Linux, Windows |
 
