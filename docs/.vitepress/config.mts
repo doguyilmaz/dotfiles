@@ -6,6 +6,7 @@ export default withMermaid(
     title: '@dotformat/cli',
     description: 'Machine identity CLI — collect, backup, restore, scan, and diff configs across machines',
     lang: 'en-US',
+    base: '/dotfiles/',
     appearance: 'dark',
     cleanUrls: true,
     lastUpdated: true,
